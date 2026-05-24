@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - 8 Tickers Edition</title>
+    <title>CDS Journey Planner - Smart Selector Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -32,12 +32,44 @@
             color: white;
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.5px; }
         header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
         
+        /* Selector Styling */
+        .selector-box {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .selector-box label {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+        .selector-box select {
+            padding: 8px 16px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            outline: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .selector-box select:focus {
+            border-color: var(--primary);
+        }
+
         .pdf-page-block {
             background: var(--card-bg);
             border: 2px solid var(--border);
@@ -45,6 +77,7 @@
             padding: 25px;
             margin-bottom: 40px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: none; /* Default mein sab hidden rahenge, JS se show honge */
         }
         .page-header {
             display: flex;
@@ -68,7 +101,6 @@
             font-weight: bold;
         }
 
-        /* 8-Ticker Layout for Daily Work */
         .page-daily-work {
             background: #fffbeb;
             border: 1px solid #fef3c7;
@@ -121,7 +153,6 @@
             cursor: pointer;
         }
 
-        /* Tasks Grid */
         .tasks-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -172,8 +203,13 @@
 <div class="container">
     <header>
         <h1>CDS JOURNEY PLANNER</h1>
-        <p>8-Day Layout with Repeating 8-Ticker Daily Progress Bars</p>
+        <p>Smart Auto-Focus Dashboard Grid</p>
     </header>
+
+    <div class="selector-box">
+        <label for="block-select">🎯 Select Study Block:</label>
+        <select id="block-select"></select>
+    </div>
 
     <div id="pdf-layout-container"></div>
 </div>
@@ -245,14 +281,26 @@
     ];
 
     const container = document.getElementById('pdf-layout-container');
+    const selectMenu = document.getElementById('block-select');
     const itemsPerGroup = 8;
+    const totalBlocks = Math.ceil(scheduleData.length / itemsPerGroup);
 
+    // Setup Dropdown Menu Options
+    for(let b = 1; b <= totalBlocks; b++) {
+        const option = document.createElement('option');
+        option.value = `block-${b}`;
+        option.textContent = `Block Group ${b} (Day ${(b-1)*8 + 1} to ${Math.min(b*8, scheduleData.length)})`;
+        selectMenu.appendChild(option);
+    }
+
+    // Render Blocks
     for (let i = 0; i < scheduleData.length; i += itemsPerGroup) {
         const currentGroup = scheduleData.slice(i, i + itemsPerGroup);
         const groupIndex = Math.floor(i / itemsPerGroup) + 1;
 
         const pageBlock = document.createElement('div');
         pageBlock.className = 'pdf-page-block';
+        pageBlock.id = `block-${groupIndex}`;
 
         let pageHeaderHtml = `
             <div class="page-header">
@@ -261,7 +309,6 @@
             </div>
         `;
 
-        // Render Daily Work with exactly 8 distinct tickers matching each day in the block
         let dailyWorkHtml = `
             <div class="page-daily-work">
                 <h4>☑ DAILY WORK (8-Day Tracking Columns)</h4>
@@ -275,7 +322,6 @@
                     <div class="checkbox-group">
             `;
             
-            // Generate 8 ticks labeled D1 to D8
             for (let t = 1; t <= 8; t++) {
                 const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${t}`;
                 const isChecked = localStorage.getItem(storageKey) === 'true';
@@ -283,7 +329,7 @@
                 dailyWorkHtml += `
                     <div class="ticker-cell">
                         <span>D${t}</span>
-                        <input type="checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" data-block="${groupIndex}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
                     </div>
                 `;
             }
@@ -295,7 +341,6 @@
         });
         dailyWorkHtml += `</div></div>`;
 
-        // Render the 8 core schedule target boxes
         let gridHtml = `<div class="tasks-grid">`;
         currentGroup.forEach((day, dayIndex) => {
             const safeDateStr = day.date.replace(/\s+/g, '_');
@@ -314,7 +359,7 @@
 
                 gridHtml += `
                     <li class="task-item ${isChecked ? 'completed' : ''}">
-                        <input type="checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" data-block="${groupIndex}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
                         <span class="task-text">${task}</span>
                     </li>
                 `;
@@ -328,13 +373,35 @@
         container.appendChild(pageBlock);
     }
 
-    // Attach Event Listeners to save data instantly
+    // Function to Switch Displayed Block
+    function showBlock(blockId) {
+        document.querySelectorAll('.pdf-page-block').forEach(block => {
+            block.style.display = 'none';
+        });
+        const selectedBlock = document.getElementById(blockId);
+        if(selectedBlock) {
+            selectedBlock.style.display = 'block';
+        }
+        selectMenu.value = blockId;
+    }
+
+    // Event Listener for Dropdown Change
+    selectMenu.addEventListener('change', function() {
+        showBlock(this.value);
+    });
+
+    // Checkbox Interaction and Dynamic Active Tracking
     document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const key = this.getAttribute('data-key');
-            localStorage.setItem(key, this.checked);
+            const targetBlock = this.getAttribute('data-block');
             
-            // Check if it belongs to regular task items to toggle cross line
+            if(key) {
+                localStorage.setItem(key, this.checked);
+                // Save this block as the latest interacting block
+                localStorage.setItem('latest_active_block', `block-${targetBlock}`);
+            }
+            
             const listItem = this.parentElement;
             if (listItem.classList.contains('task-item')) {
                 if (this.checked) {
@@ -345,9 +412,17 @@
             }
         });
     });
+
+    // Smart Setup on Page Load
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedLatestBlock = localStorage.getItem('latest_active_block');
+        if (savedLatestBlock && document.getElementById(savedLatestBlock)) {
+            showBlock(savedLatestBlock);
+        } else {
+            showBlock('block-1'); // Sabse pehli baar ke liye Block 1 default rahega
+        }
+    });
 </script>
 
 </body>
 </html>
-
-
