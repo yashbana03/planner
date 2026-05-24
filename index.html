@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDS Journey Planner - 8 Tickers Edition</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #eff6ff;
+            --accent: #f59e0b;
+            --text: #1f2937;
+            --bg: #e5e7eb;
+            --card-bg: #ffffff;
+            --border: #d1d5db;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.5px; }
+        header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
+        
+        .pdf-page-block {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .pdf-tag {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* 8-Ticker Layout for Daily Work */
+        .page-daily-work {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+        }
+        .page-daily-work h4 { margin: 0 0 15px 0; color: #b45309; font-size: 1rem; text-transform: uppercase;}
+        
+        .ticker-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+        }
+        .ticker-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #fef3c7;
+        }
+        .ticker-row:last-child { border-bottom: none; }
+        
+        .task-label {
+            flex: 2;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1f2937;
+        }
+        .checkbox-group {
+            flex: 3;
+            display: flex;
+            justify-content: space-between;
+            max-width: 500px;
+        }
+        .ticker-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .ticker-cell span {
+            font-size: 0.7rem;
+            color: #b45309;
+            font-weight: bold;
+        }
+        .ticker-cell input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #b45309;
+            cursor: pointer;
+        }
+
+        /* Tasks Grid */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .day-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .day-box.sunday { background: #fef2f2; border-color: #fee2e2; }
+        .day-box h5 {
+            margin: 0 0 10px 0;
+            font-size: 1.05rem;
+            color: var(--primary);
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .day-box.sunday h5 { color: #dc2626; }
+        .sunday-tag { font-size: 0.7rem; color: #dc2626; font-weight: bold; }
+
+        .task-list { list-style: none; padding: 0; margin: 0; }
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            line-height: 1.3;
+        }
+        .task-item input[type="checkbox"] {
+            margin-right: 8px;
+            margin-top: 2px;
+            width: 14px;
+            height: 14px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        .task-text { flex: 1; }
+        .completed .task-text { text-decoration: line-through; color: #9ca3af; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>CDS JOURNEY PLANNER</h1>
+        <p>8-Day Layout with Repeating 8-Ticker Daily Progress Bars</p>
+    </header>
+
+    <div id="pdf-layout-container"></div>
+</div>
+
+<script>
+    const dailyEssentials = [
+        "BOOK READING",
+        "30 MIN CURRENT AFFAIRS REVISION",
+        "KHELGHAR QUIZ"
+    ];
+
+    const scheduleData = [
+        { date: "25 MAY", tasks: ["President + VP + Governor", "January smiling buddha Revision", "Tense", "Idioms & phrases", "Watch root words class"] },
+        { date: "26 MAY", tasks: ["Parliament", "January smiling buddha Revision", "Tense", "S1-S6 practice"] },
+        { date: "27 MAY", tasks: ["Parliament + Parliamentary committees", "Jan.smiling buddha Revision", "Tense based error practice", "S1-S6 practice", "Watch Jan CA class"] },
+        { date: "28 MAY", tasks: ["PM + CM + President", "Previous year error practice", "Parts of speech practice", "PQRS practice", "Idioms & phrases"] },
+        { date: "29 MAY", tasks: ["Cell", "Feb smiling buddha Revision", "Noun", "S1-S2 practice", "Watch BAD class 2"] },
+        { date: "30 MAY", tasks: ["Tissue", "Feb smiling buddha Revision", "Noun practice", "New pattern parts of speech"] },
+        { date: "31 MAY", isSunday: true, tasks: ["Polity Revision", "Backlogs", "Watch Jan CA class"] },
+        { date: "1 JUNE", tasks: ["Life processes", "February smiling buddha Revision", "Watch Feb CA class"] },
+        
+        { date: "2 JUNE", tasks: ["Life processes", "March smiling buddha Revision", "Homonyms Revision", "S1-S6 practice"] },
+        { date: "3 JUNE", tasks: ["Revise all polity topics covered so far", "March smiling buddha Revision", "Watch 11 most Asked Homonyms"] },
+        { date: "4 JUNE", tasks: ["State legislature + panchayat + municipalities", "April smiling buddha Revision", "Pronoun", "Practice new pattern POS", "Fill ups practice", "PQRS practice", "Watch march CA class"] },
+        { date: "5 JUNE", tasks: ["Constitutional & non-constitutional bodies", "April smiling buddha Revision", "Verb", "Pronoun practice", "Homonyms Revision", "Watch vocab class", "S1-S2 practice"] },
+        { date: "6 JUNE", tasks: ["Revise cell and tissue", "Solve any previous year english paper", "April smiling buddha Revision"] },
+        { date: "7 JUNE", isSunday: true, tasks: ["Revise all Biology Topic covered", "Cloze test practice"] },
+        { date: "8 JUNE", tasks: ["Disease", "January smiling buddha Revision", "Verb"] },
+        { date: "9 JUNE", tasks: ["Plants & Human hormones", "Jan smiling buddha Revision", "Idioms & phrases"] },
+        
+        { date: "10 JUNE", tasks: ["Reproduction", "Jan smiling buddha Revision", "Verb practice", "Fill ups", "Homonyms Revision"] },
+        { date: "11 JUNE", tasks: ["Revise polity topics covered so far", "Feb smiling buddha Revision"] },
+        { date: "12 JUNE", tasks: ["Fundamental Rights", "Feb smiling buddha Revision", "Subject verb Agreement", "Idioms & phrases Revision"] },
+        { date: "13 JUNE", tasks: ["DRSP + FDs", "Feb smiling buddha Revision", "Solve any previous year english question paper"] },
+        { date: "14 JUNE", isSunday: true, tasks: ["Revise Biology topics covered so far"] },
+        { date: "15 JUNE", tasks: ["Diversity in living organisms", "Feb smiling buddha Revision", "Discourse marker", "Cloze test practice", "Watch BAD series class 3", "Error practice"] },
+        { date: "16 JUNE", tasks: ["Control & coordination + formed elements + blood", "March smiling buddha Revision", "Question tag", "PQRS practice", "Idioms & phrases Revision"] },
+        { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May CA class"] },
+        
+        { date: "18 JUNE", tasks: ["Making of the constitution", "March smiling buddha Revision", "New pattern POS practice", "S1-S6 practice"] },
+        { date: "19 JUNE", tasks: ["Emergency provisions + Amendments & the constitution", "April smiling buddha revision", "Homonyms Revision", "S1-S2 practice"] },
+        { date: "20 JUNE", tasks: ["Subordinates courts + HC + SC", "April smiling buddha revision", "S1-S6 + PQRS practice", "Fill ups practice", "Homonyms revision"] },
+        { date: "21 JUNE", isSunday: true, tasks: ["Complete pending tasks"] },
+        { date: "22 JUNE", tasks: ["Revise polity topics covered so far"] },
+        { date: "23 JUNE", tasks: ["Preamble", "April smiling buddha revision", "Grammar based error practice", "Solve previous year POS questions", "Idioms & phrases revision"] },
+        { date: "24 JUNE", tasks: ["Complete Biology Revision", "April smiling buddha revision", "Solve any previous year english question paper", "S1-S6 practice", "Solve previous year S1-S2 question", "Watch vocab class", "Idioms & phrases revision"] },
+        { date: "25 JUNE", tasks: ["Universe, Geology & Geological time scale", "Jan smiling buddha revision", "preposition", "cloze test"] },
+        
+        { date: "26 JUNE", tasks: ["latitude, longitude & interior of the earth", "Jan smiling buddha revision", "preposition", "phrasal verbs", "PQRS practice"] },
+        { date: "27 JUNE", tasks: ["Earthquake and Volcanoes", "Jan smiling buddha revision", "fixed preposition", "preposition based fill ups", "SI-S6 practice"] },
+        { date: "28 JUNE", isSunday: true, tasks: ["complete polity Revision"] },
+        { date: "29 JUNE", tasks: ["Geomorphic processes + rocks", "feb smiling buddha revision", "conjunction", "Idioms & phrases Revision", "cloze test", "watch vocab class"] },
+        { date: "30 JUNE", tasks: ["Acids, Base & salts", "feb smiling buddha revision", "conjunction practice", "phrasal verbs", "SI-S6 practice"] },
+        { date: "1 JULY", tasks: ["Metals & non-metals", "feb smiling buddha revision", "New pattern POS practice", "Homonyms Revision", "S1-S6 practice"] },
+        { date: "2 JULY", tasks: ["Carbon & its compounds", "march smiling buddha revision", "Discourse marker", "S1-S2 practice", "Homonyms Revision"] },
+        { date: "3 JULY", tasks: ["oceanic basin + ocean current", "march smiling buddha revision", "Grammar based error practice", "Idioms & phrases"] },
+        
+        { date: "4 JULY", tasks: ["coral reefs & tides", "march smiling buddha revision", "voice", "Narration", "S1-S2 practice"] },
+        { date: "5 JULY", tasks: ["Revise physical Geography covered so far", "solve any previous year english paper"] },
+        { date: "6 JULY", tasks: ["chemical Reaction & equation", "April smiling buddha revision", "voice practice", "Homonyms revision", "S1-S6 practice", "S1-S2 practice", "Idioms & Phrase Revision"] },
+        { date: "7 JULY", tasks: ["Atoms & molecules + revision chemistry topics covered so far", "April smiling buddha revision", "Tense Revision + practice", "fill ups", "PQRS"] },
+        { date: "8 JULY", tasks: ["Structure of Atoms", "April smiling buddha revision", "Discourse marker", "Idioms phrases Revision", "Homonyms Revision"] },
+        { date: "9 JULY", isSunday: true, tasks: ["state of matter", "may smiling buddha revision", "Narration practice"] },
+        { date: "10 JULY", tasks: ["earth, Atmosphere, heat Budget, layers of earth's", "may smiling buddha revision", "Articles + Determiner", "S1-S6 practice", "Idioms & Phrases Revision"] },
+        { date: "11 JULY", tasks: ["Winds pressure belt + cyclones + Anticyclone", "may smiling buddha revision", "Articles + Determiner practice new pattern pos", "cloze test"] },
+        
+        { date: "12 JULY", isSunday: true, tasks: ["inversion & temp + forms of condensation + clouds + precipitation", "english full mock test"] },
+        { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
+    ];
+
+    const container = document.getElementById('pdf-layout-container');
+    const itemsPerGroup = 8;
+
+    for (let i = 0; i < scheduleData.length; i += itemsPerGroup) {
+        const currentGroup = scheduleData.slice(i, i + itemsPerGroup);
+        const groupIndex = Math.floor(i / itemsPerGroup) + 1;
+
+        const pageBlock = document.createElement('div');
+        pageBlock.className = 'pdf-page-block';
+
+        let pageHeaderHtml = `
+            <div class="page-header">
+                <div class="page-title">📅 STUDY SCHEDULE PLANNER</div>
+                <div class="pdf-tag">GROUP BLOCK ${groupIndex}</div>
+            </div>
+        `;
+
+        // Render Daily Work with exactly 8 distinct tickers matching each day in the block
+        let dailyWorkHtml = `
+            <div class="page-daily-work">
+                <h4>☑ DAILY WORK (8-Day Tracking Columns)</h4>
+                <div class="ticker-table">
+        `;
+
+        dailyEssentials.forEach((essential, essentialIdx) => {
+            dailyWorkHtml += `
+                <div class="ticker-row">
+                    <div class="task-label">⚡ ${essential}</div>
+                    <div class="checkbox-group">
+            `;
+            
+            // Generate 8 ticks labeled D1 to D8
+            for (let t = 1; t <= 8; t++) {
+                const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${t}`;
+                const isChecked = localStorage.getItem(storageKey) === 'true';
+                
+                dailyWorkHtml += `
+                    <div class="ticker-cell">
+                        <span>D${t}</span>
+                        <input type="checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                    </div>
+                `;
+            }
+
+            dailyWorkHtml += `
+                    </div>
+                </div>
+            `;
+        });
+        dailyWorkHtml += `</div></div>`;
+
+        // Render the 8 core schedule target boxes
+        let gridHtml = `<div class="tasks-grid">`;
+        currentGroup.forEach((day, dayIndex) => {
+            const safeDateStr = day.date.replace(/\s+/g, '_');
+            const isSundayClass = day.isSunday ? 'sunday' : '';
+            const sundayTagHtml = day.isSunday ? '<span class="sunday-tag">SUNDAY</span>' : '';
+
+            gridHtml += `
+                <div class="day-box ${isSundayClass}">
+                    <h5>[D${dayIndex + 1}] ${day.date} ${sundayTagHtml}</h5>
+                    <ul class="task-list">
+            `;
+
+            day.tasks.forEach((task, taskIdx) => {
+                const storageKey = `task_${safeDateStr}_${taskIdx}`;
+                const isChecked = localStorage.getItem(storageKey) === 'true';
+
+                gridHtml += `
+                    <li class="task-item ${isChecked ? 'completed' : ''}">
+                        <input type="checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        <span class="task-text">${task}</span>
+                    </li>
+                `;
+            });
+
+            gridHtml += `</ul></div>`;
+        });
+        gridHtml += `</div>`;
+
+        pageBlock.innerHTML = pageHeaderHtml + dailyWorkHtml + gridHtml;
+        container.appendChild(pageBlock);
+    }
+
+    // Attach Event Listeners to save data instantly
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const key = this.getAttribute('data-key');
+            localStorage.setItem(key, this.checked);
+            
+            // Check if it belongs to regular task items to toggle cross line
+            const listItem = this.parentElement;
+            if (listItem.classList.contains('task-item')) {
+                if (this.checked) {
+                    listItem.classList.add('completed');
+                } else {
+                    listItem.classList.remove('completed');
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
+
+
+
+# dkfjhsalkfgafgl
