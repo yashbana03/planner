@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Smart Selector Edition</title>
+    <title>CDS Journey Planner - Auto-Focus Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -77,7 +77,7 @@
             padding: 25px;
             margin-bottom: 40px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            display: none; /* Default mein sab hidden rahenge, JS se show honge */
+            display: none;
         }
         .page-header {
             display: flex;
@@ -163,6 +163,8 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 12px;
+            position: relative;
+            transition: all 0.3s ease;
         }
         .day-box.sunday { background: #fef2f2; border-color: #fee2e2; }
         .day-box h5 {
@@ -173,9 +175,27 @@
             padding-bottom: 5px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
         .day-box.sunday h5 { color: #dc2626; }
         .sunday-tag { font-size: 0.7rem; color: #dc2626; font-weight: bold; }
+
+        /* 🔥 AAJ KE TASK KE LIYE NYI CSS HIGHLIGHTING */
+        .day-box.today-highlight {
+            border: 3px solid #10b981 !important;
+            background: #f0fdf4 !important;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+            transform: scale(1.02);
+            z-index: 10;
+        }
+        .today-badge {
+            background: #10b981;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
 
         .task-list { list-style: none; padding: 0; margin: 0; }
         .task-item {
@@ -280,6 +300,16 @@
         { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
     ];
 
+    // --- 🛠️ DYNAMIC DATE LOGIC ---
+    // Computer se aaj ki tareekh nikalne ke liye format bana rhe hain (e.g., "26 MAY" ya "2 JUNE")
+    const months = ["JAN", "FEB", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUG", "SEPT", "OCT", "NOV", "DEC"];
+    const d = new Date();
+    const currentDayNum = d.getDate();
+    const currentMonthStr = months[d.getMonth()];
+    const todayFormatted = `${currentDayNum} ${currentMonthStr}`; // Result: "26 MAY"
+
+    let detectedBlockId = "block-1"; // Kuch na mile toh block-1 default rahega
+
     const container = document.getElementById('pdf-layout-container');
     const selectMenu = document.getElementById('block-select');
     const itemsPerGroup = 8;
@@ -344,12 +374,21 @@
         let gridHtml = `<div class="tasks-grid">`;
         currentGroup.forEach((day, dayIndex) => {
             const safeDateStr = day.date.replace(/\s+/g, '_');
+            
+            // Checking if this box matches today's date
+            const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
+            if (isToday) {
+                detectedBlockId = `block-${groupIndex}`; // Automatic is block ko select karwayenge
+            }
+
             const isSundayClass = day.isSunday ? 'sunday' : '';
+            const isTodayClass = isToday ? 'today-highlight' : '';
             const sundayTagHtml = day.isSunday ? '<span class="sunday-tag">SUNDAY</span>' : '';
+            const todayBadgeHtml = isToday ? '<span class="today-badge">TODAY</span>' : '';
 
             gridHtml += `
-                <div class="day-box ${isSundayClass}">
-                    <h5>[D${dayIndex + 1}] ${day.date} ${sundayTagHtml}</h5>
+                <div class="day-box ${isSundayClass} ${isTodayClass}" ${isToday ? 'id="scroll-to-today"' : ''}>
+                    <h5>[D${dayIndex + 1}] ${day.date} ${sundayTagHtml} ${todayBadgeHtml}</h5>
                     <ul class="task-list">
             `;
 
@@ -398,7 +437,6 @@
             
             if(key) {
                 localStorage.setItem(key, this.checked);
-                // Save this block as the latest interacting block
                 localStorage.setItem('latest_active_block', `block-${targetBlock}`);
             }
             
@@ -413,14 +451,18 @@
         });
     });
 
-    // Smart Setup on Page Load
+    // Smart Setup on Page Load WITH AUTO-FOCUS DATE LOGIC
     window.addEventListener('DOMContentLoaded', () => {
-        const savedLatestBlock = localStorage.getItem('latest_active_block');
-        if (savedLatestBlock && document.getElementById(savedLatestBlock)) {
-            showBlock(savedLatestBlock);
-        } else {
-            showBlock('block-1'); // Sabse pehli baar ke liye Block 1 default rahega
-        }
+        // Sabse pehle auto-detected date waala block kholega
+        showBlock(detectedBlockId);
+
+        // Choti si window delay taaki layout render ho jaye phir aaj waale task par zoom scroll karega
+        setTimeout(() => {
+            const todayElement = document.getElementById('scroll-to-today');
+            if (todayElement) {
+                todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 300);
     });
 </script>
 
