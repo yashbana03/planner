@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Auto-Focus Edition</title>
+    <title>CDS Journey Planner - Today's Focus Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -68,6 +68,58 @@
         }
         .selector-box select:focus {
             border-color: var(--primary);
+        }
+
+        /* 🔥 TODAY'S TASK SPECIAL DEDICATED SPACE STYLING */
+        .todays-dashboard-box {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 3px solid var(--success);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.15);
+        }
+        .todays-dashboard-box h3 {
+            margin: 0 0 15px 0;
+            color: #065f46;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #a7f3d0;
+            padding-bottom: 8px;
+        }
+        .todays-task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+        }
+        .todays-task-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--success);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: flex-start;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .todays-task-item input[type="checkbox"] {
+            margin-right: 10px;
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--success);
+            cursor: pointer;
+        }
+        .no-tasks-msg {
+            color: #065f46;
+            font-weight: 600;
+            font-style: italic;
         }
 
         .pdf-page-block {
@@ -180,13 +232,9 @@
         .day-box.sunday h5 { color: #dc2626; }
         .sunday-tag { font-size: 0.7rem; color: #dc2626; font-weight: bold; }
 
-        /* 🔥 AAJ KE TASK KE LIYE NYI CSS HIGHLIGHTING */
         .day-box.today-highlight {
-            border: 3px solid #10b981 !important;
+            border: 2.5px solid #10b981 !important;
             background: #f0fdf4 !important;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
-            transform: scale(1.02);
-            z-index: 10;
         }
         .today-badge {
             background: #10b981;
@@ -229,6 +277,12 @@
     <div class="selector-box">
         <label for="block-select">🎯 Select Study Block:</label>
         <select id="block-select"></select>
+    </div>
+
+    <div class="todays-dashboard-box">
+        <h3 id="todays-dashboard-title">🎯 TODAY'S FOCUS TASKS</h3>
+        <ul class="todays-task-list" id="todays-task-container">
+            </ul>
     </div>
 
     <div id="pdf-layout-container"></div>
@@ -300,22 +354,26 @@
         { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
     ];
 
-    // --- 🛠️ DYNAMIC DATE LOGIC ---
-    // Computer se aaj ki tareekh nikalne ke liye format bana rhe hain (e.g., "26 MAY" ya "2 JUNE")
+    // --- DATE CONFIGURATION ---
     const months = ["JAN", "FEB", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUG", "SEPT", "OCT", "NOV", "DEC"];
     const d = new Date();
     const currentDayNum = d.getDate();
     const currentMonthStr = months[d.getMonth()];
-    const todayFormatted = `${currentDayNum} ${currentMonthStr}`; // Result: "26 MAY"
+    const todayFormatted = `${currentDayNum} ${currentMonthStr}`; // e.g., "26 MAY"
 
-    let detectedBlockId = "block-1"; // Kuch na mile toh block-1 default rahega
+    // Set Dashboard title with live date
+    document.getElementById('todays-dashboard-title').innerHTML = `🎯 TODAY'S FOCUS TASKS (${todayFormatted})`;
+
+    let detectedBlockId = "block-1";
+    let todaysTasksArray = [];
+    let todaysDateStringSafe = "";
 
     const container = document.getElementById('pdf-layout-container');
     const selectMenu = document.getElementById('block-select');
     const itemsPerGroup = 8;
     const totalBlocks = Math.ceil(scheduleData.length / itemsPerGroup);
 
-    // Setup Dropdown Menu Options
+    // Dropdown Generator
     for(let b = 1; b <= totalBlocks; b++) {
         const option = document.createElement('option');
         option.value = `block-${b}`;
@@ -323,7 +381,7 @@
         selectMenu.appendChild(option);
     }
 
-    // Render Blocks
+    // Grid Renderer
     for (let i = 0; i < scheduleData.length; i += itemsPerGroup) {
         const currentGroup = scheduleData.slice(i, i + itemsPerGroup);
         const groupIndex = Math.floor(i / itemsPerGroup) + 1;
@@ -351,34 +409,29 @@
                     <div class="task-label">⚡ ${essential}</div>
                     <div class="checkbox-group">
             `;
-            
             for (let t = 1; t <= 8; t++) {
                 const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${t}`;
                 const isChecked = localStorage.getItem(storageKey) === 'true';
-                
                 dailyWorkHtml += `
                     <div class="ticker-cell">
                         <span>D${t}</span>
-                        <input type="checkbox" data-block="${groupIndex}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" class="sync-checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
                     </div>
                 `;
             }
-
-            dailyWorkHtml += `
-                    </div>
-                </div>
-            `;
+            dailyWorkHtml += `</div></div>`;
         });
         dailyWorkHtml += `</div></div>`;
 
         let gridHtml = `<div class="tasks-grid">`;
         currentGroup.forEach((day, dayIndex) => {
             const safeDateStr = day.date.replace(/\s+/g, '_');
-            
-            // Checking if this box matches today's date
             const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
+            
             if (isToday) {
-                detectedBlockId = `block-${groupIndex}`; // Automatic is block ko select karwayenge
+                detectedBlockId = `block-${groupIndex}`;
+                todaysTasksArray = day.tasks;
+                todaysDateStringSafe = safeDateStr;
             }
 
             const isSundayClass = day.isSunday ? 'sunday' : '';
@@ -387,7 +440,7 @@
             const todayBadgeHtml = isToday ? '<span class="today-badge">TODAY</span>' : '';
 
             gridHtml += `
-                <div class="day-box ${isSundayClass} ${isTodayClass}" ${isToday ? 'id="scroll-to-today"' : ''}>
+                <div class="day-box ${isSundayClass} ${isTodayClass}">
                     <h5>[D${dayIndex + 1}] ${day.date} ${sundayTagHtml} ${todayBadgeHtml}</h5>
                     <ul class="task-list">
             `;
@@ -395,21 +448,37 @@
             day.tasks.forEach((task, taskIdx) => {
                 const storageKey = `task_${safeDateStr}_${taskIdx}`;
                 const isChecked = localStorage.getItem(storageKey) === 'true';
-
                 gridHtml += `
-                    <li class="task-item ${isChecked ? 'completed' : ''}">
-                        <input type="checkbox" data-block="${groupIndex}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                    <li class="task-item ${isChecked ? 'completed' : ''}" id="main-item-${safeDateStr}-${taskIdx}">
+                        <input type="checkbox" class="sync-checkbox" data-main-id="${safeDateStr}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
                         <span class="task-text">${task}</span>
                     </li>
                 `;
             });
-
             gridHtml += `</ul></div>`;
         });
         gridHtml += `</div>`;
 
         pageBlock.innerHTML = pageHeaderHtml + dailyWorkHtml + gridHtml;
         container.appendChild(pageBlock);
+    }
+
+    // --- TOP SPACE (TODAY'S DASHBOARD) INJECTOR ---
+    const dashboardContainer = document.getElementById('todays-task-container');
+    if (todaysTasksArray.length > 0) {
+        todaysTasksArray.forEach((task, taskIdx) => {
+            const storageKey = `task_${todaysDateStringSafe}_${taskIdx}`;
+            const isChecked = localStorage.getItem(storageKey) === 'true';
+            
+            dashboardContainer.innerHTML += `
+                <li class="todays-task-item ${isChecked ? 'completed' : ''}" id="dash-item-${todaysDateStringSafe}-${taskIdx}">
+                    <input type="checkbox" class="sync-checkbox" data-dash-id="${todaysDateStringSafe}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                    <span class="task-text">${task}</span>
+                </li>
+            `;
+        });
+    } else {
+        dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No specific tasks scheduled for today. Backlogs clear karo ya chill karo!</p>`;
     }
 
     // Function to Switch Displayed Block
@@ -424,45 +493,68 @@
         selectMenu.value = blockId;
     }
 
-    // Event Listener for Dropdown Change
     selectMenu.addEventListener('change', function() {
         showBlock(this.value);
     });
 
-    // Checkbox Interaction and Dynamic Active Tracking
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    // Smart Interlocked Checkbox Logic (Syncs Dashboard and Main Body Grid)
+    document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const key = this.getAttribute('data-key');
-            const targetBlock = this.getAttribute('data-block');
+            const isChecked = this.checked;
             
             if(key) {
-                localStorage.setItem(key, this.checked);
-                localStorage.setItem('latest_active_block', `block-${targetBlock}`);
+                localStorage.setItem(key, isChecked);
+            }
+
+            // Sync Main Grid Checkbox if Top Dashboard is clicked
+            const dashId = this.getAttribute('data-dash-id');
+            if (dashId) {
+                const mainCheckbox = document.querySelector(`[data-main-id="${dashId}"]`);
+                if (mainCheckbox) mainCheckbox.checked = isChecked;
+                
+                const itemDash = document.getElementById(`dash-item-${dashId}`);
+                const itemMain = document.getElementById(`main-item-${dashId}`);
+                if(isChecked) {
+                    if(itemDash) itemDash.classList.add('completed');
+                    if(itemMain) itemMain.classList.add('completed');
+                } else {
+                    if(itemDash) itemDash.classList.remove('completed');
+                    if(itemMain) itemMain.classList.remove('completed');
+                }
+            }
+
+            // Sync Top Dashboard Checkbox if Main Grid is clicked
+            const mainId = this.getAttribute('data-main-id');
+            if (mainId) {
+                const dashCheckbox = document.querySelector(`[data-dash-id="${mainId}"]`);
+                if (dashCheckbox) dashCheckbox.checked = isChecked;
+                
+                const itemDash = document.getElementById(`dash-item-${mainId}`);
+                const itemMain = document.getElementById(`main-item-${mainId}`);
+                if(isChecked) {
+                    if(itemDash) itemDash.classList.add('completed');
+                    if(itemMain) itemMain.classList.add('completed');
+                } else {
+                    if(itemDash) itemDash.classList.remove('completed');
+                    if(itemMain) itemMain.classList.remove('completed');
+                }
             }
             
-            const listItem = this.parentElement;
-            if (listItem.classList.contains('task-item')) {
-                if (this.checked) {
-                    listItem.classList.add('completed');
-                } else {
-                    listItem.classList.remove('completed');
+            // Handle standalone daily essentials checkboxes
+            if(!dashId && !mainId) {
+                const listItem = this.parentElement;
+                if (listItem.classList.contains('task-item')) {
+                    if (isChecked) listItem.classList.add('completed');
+                    else listItem.classList.remove('completed');
                 }
             }
         });
     });
 
-    // Smart Setup on Page Load WITH AUTO-FOCUS DATE LOGIC
+    // Page Load Setup
     window.addEventListener('DOMContentLoaded', () => {
-        // Sabse pehle auto-detected date waala block kholega
         showBlock(detectedBlockId);
-
-        // Choti si window delay taaki layout render ho jaye phir aaj waale task par zoom scroll karega
-        setTimeout(() => {
-            const todayElement = document.getElementById('scroll-to-today');
-            if (todayElement) {
-                todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }, 300);
     });
 </script>
 
