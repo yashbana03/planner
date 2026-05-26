@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Auto-Block Edition</title>
+    <title>CDS Journey Planner - Extended Daily Tracker</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -72,7 +72,6 @@
         .todays-dashboard-box {
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
             border: 3px solid var(--success);
-            border-radius: 166px;
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 25px;
@@ -287,10 +286,13 @@
 </div>
 
 <script>
+    // 🔥 MAINE YAHAN PAR NEWSPAPER AUR DRR KO ADD KAR DIYA HAI SAME VESE HI
     const dailyEssentials = [
         "BOOK READING",
         "30 MIN CURRENT AFFAIRS REVISION",
-        "KHELGHAR QUIZ"
+        "KHELGHAR QUIZ",
+        "NEWSPAPER",
+        "DRR"
     ];
 
     const scheduleData = [
@@ -352,12 +354,11 @@
         { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
     ];
 
-    // --- SMART DATE NORMALIZATION LOGIC ---
     const months = ["JAN", "FEB", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUG", "SEPT", "OCT", "NOV", "DEC"];
     const d = new Date();
     const currentDayNum = d.getDate();
     const currentMonthStr = months[d.getMonth()];
-    const todayFormatted = `${currentDayNum} ${currentMonthStr}`; // Result: "26 MAY" ya "2 JUNE"
+    const todayFormatted = `${currentDayNum} ${currentMonthStr}`;
 
     document.getElementById('todays-dashboard-title').innerHTML = `🎯 TODAY'S FOCUS TASKS (${todayFormatted})`;
 
@@ -370,7 +371,6 @@
     const itemsPerGroup = 8;
     const totalBlocks = Math.ceil(scheduleData.length / itemsPerGroup);
 
-    // Dropdown options creation
     for(let b = 1; b <= totalBlocks; b++) {
         const option = document.createElement('option');
         option.value = `block-${b}`;
@@ -378,7 +378,6 @@
         selectMenu.appendChild(option);
     }
 
-    // Main layout rendering engine
     for (let i = 0; i < scheduleData.length; i += itemsPerGroup) {
         const currentGroup = scheduleData.slice(i, i + itemsPerGroup);
         const groupIndex = Math.floor(i / itemsPerGroup) + 1;
@@ -423,12 +422,10 @@
         let gridHtml = `<div class="tasks-grid">`;
         currentGroup.forEach((day, dayIndex) => {
             const safeDateStr = day.date.replace(/\s+/g, '_');
-            
-            // 🔥 Strict String Matching (Taaki small/capital june error na de)
             const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
             
             if (isToday) {
-                detectedBlockId = `block-${groupIndex}`; // Automatic correct block selection target
+                detectedBlockId = `block-${groupIndex}`;
                 todaysTasksArray = day.tasks;
                 todaysDateStringSafe = safeDateStr;
             }
@@ -462,7 +459,6 @@
         container.appendChild(pageBlock);
     }
 
-    // Top Header Dashboard Space Population
     const dashboardContainer = document.getElementById('todays-task-container');
     if (todaysTasksArray.length > 0) {
         todaysTasksArray.forEach((task, taskIdx) => {
@@ -495,7 +491,6 @@
         showBlock(this.value);
     });
 
-    // Bidirectional Live Synchronizer
     document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const key = this.getAttribute('data-key');
@@ -548,7 +543,6 @@
     });
 
     window.addEventListener('DOMContentLoaded', () => {
-        // Automatically boots into the correctly identified block group
         showBlock(detectedBlockId);
     });
 </script>
