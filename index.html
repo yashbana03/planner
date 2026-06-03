@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Extended Daily Tracker</title>
+    <title>CDS Journey Planner - Continuous Days Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -286,7 +286,6 @@
 </div>
 
 <script>
-    // 🔥 MAINE YAHAN PAR NEWSPAPER AUR DRR KO ADD KAR DIYA HAI SAME VESE HI
     const dailyEssentials = [
         "BOOK READING",
         "30 MIN CURRENT AFFAIRS REVISION",
@@ -381,6 +380,7 @@
     for (let i = 0; i < scheduleData.length; i += itemsPerGroup) {
         const currentGroup = scheduleData.slice(i, i + itemsPerGroup);
         const groupIndex = Math.floor(i / itemsPerGroup) + 1;
+        const startDayCount = i + 1; // 🎯 Yeh calculate karega absolute Day number (jaise 1, 9, 17...)
 
         const pageBlock = document.createElement('div');
         pageBlock.className = 'pdf-page-block';
@@ -395,7 +395,7 @@
 
         let dailyWorkHtml = `
             <div class="page-daily-work">
-                <h4>☑ DAILY WORK (8-Day Tracking Columns)</h4>
+                <h4>☑ DAILY WORK (Continuous Tracking Columns)</h4>
                 <div class="ticker-table">
         `;
 
@@ -405,15 +405,19 @@
                     <div class="task-label">⚡ ${essential}</div>
                     <div class="checkbox-group">
             `;
-            for (let t = 1; t <= 8; t++) {
-                const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${t}`;
-                const isChecked = localStorage.getItem(storageKey) === 'true';
-                dailyWorkHtml += `
-                    <div class="ticker-cell">
-                        <span>D${t}</span>
-                        <input type="checkbox" class="sync-checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
-                    </div>
-                `;
+            // 🎯 Tracking headers ko absolute dynamic banaya (D1-D8, D9-D16...)
+            for (let t = 0; t < 8; t++) {
+                const absoluteDay = startDayCount + t;
+                if(absoluteDay <= scheduleData.length) {
+                    const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${absoluteDay}`;
+                    const isChecked = localStorage.getItem(storageKey) === 'true';
+                    dailyWorkHtml += `
+                        <div class="ticker-cell">
+                            <span>D${absoluteDay}</span>
+                            <input type="checkbox" class="sync-checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        </div>
+                    `;
+                }
             }
             dailyWorkHtml += `</div></div>`;
         });
@@ -421,6 +425,7 @@
 
         let gridHtml = `<div class="tasks-grid">`;
         currentGroup.forEach((day, dayIndex) => {
+            const absoluteDayNumber = startDayCount + dayIndex; // 🎯 Yeh har specific card ko sahi day id dega
             const safeDateStr = day.date.replace(/\s+/g, '_');
             const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
             
@@ -437,7 +442,7 @@
 
             gridHtml += `
                 <div class="day-box ${isSundayClass} ${isTodayClass}">
-                    <h5>[D${dayIndex + 1}] ${day.date} ${sundayTagHtml} ${todayBadgeHtml}</h5>
+                    <h5>[D${absoluteDayNumber}] ${day.date} ${sundayTagHtml} ${todayBadgeHtml}</h5>
                     <ul class="task-list">
             `;
 
