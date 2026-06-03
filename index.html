@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Continuous Days Edition</title>
+    <title>CDS Journey Planner - Navigation Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -45,10 +45,19 @@
             padding: 15px;
             margin-bottom: 25px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             gap: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .selector-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            flex-wrap: wrap;
         }
         .selector-box label {
             font-weight: bold;
@@ -67,6 +76,37 @@
         }
         .selector-box select:focus {
             border-color: var(--primary);
+        }
+
+        /* 🎯 NAV BUTTONS STYLES */
+        .nav-btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .nav-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .nav-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
         }
 
         .todays-dashboard-box {
@@ -273,8 +313,14 @@
     </header>
 
     <div class="selector-box">
-        <label for="block-select">🎯 Select Study Block:</label>
-        <select id="block-select"></select>
+        <div class="selector-controls">
+            <label for="block-select">🎯 Select Study Block:</label>
+            <select id="block-select"></select>
+        </div>
+        <div class="nav-btn-container">
+            <button id="prev-btn" class="nav-btn">◀ Previous Block</button>
+            <button id="next-btn" class="nav-btn">Next Block ▶</button>
+        </div>
     </div>
 
     <div class="todays-dashboard-box">
@@ -320,7 +366,7 @@
         { date: "14 JUNE", isSunday: true, tasks: ["Revise Biology topics covered so far"] },
         { date: "15 JUNE", tasks: ["Diversity in living organisms", "Feb smiling buddha Revision", "Discourse marker", "Cloze test practice", "Watch BAD series class 3", "Error practice"] },
         { date: "16 JUNE", tasks: ["Control & coordination + formed elements + blood", "March smiling buddha Revision", "Question tag", "PQRS practice", "Idioms & phrases Revision"] },
-        { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May CA class"] },
+        { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May May CA class"] },
         
         { date: "18 JUNE", tasks: ["Making of the constitution", "March smiling buddha Revision", "New pattern POS practice", "S1-S6 practice"] },
         { date: "19 JUNE", tasks: ["Emergency provisions + Amendments & the constitution", "April smiling buddha revision", "Homonyms Revision", "S1-S2 practice"] },
@@ -367,6 +413,9 @@
 
     const container = document.getElementById('pdf-layout-container');
     const selectMenu = document.getElementById('block-select');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
     const itemsPerGroup = 8;
     const totalBlocks = Math.ceil(scheduleData.length / itemsPerGroup);
 
@@ -380,7 +429,7 @@
     for (let i = 0; i < scheduleData.length; i += itemsPerGroup) {
         const currentGroup = scheduleData.slice(i, i + itemsPerGroup);
         const groupIndex = Math.floor(i / itemsPerGroup) + 1;
-        const startDayCount = i + 1; // 🎯 Yeh calculate karega absolute Day number (jaise 1, 9, 17...)
+        const startDayCount = i + 1;
 
         const pageBlock = document.createElement('div');
         pageBlock.className = 'pdf-page-block';
@@ -405,7 +454,6 @@
                     <div class="task-label">⚡ ${essential}</div>
                     <div class="checkbox-group">
             `;
-            // 🎯 Tracking headers ko absolute dynamic banaya (D1-D8, D9-D16...)
             for (let t = 0; t < 8; t++) {
                 const absoluteDay = startDayCount + t;
                 if(absoluteDay <= scheduleData.length) {
@@ -425,7 +473,7 @@
 
         let gridHtml = `<div class="tasks-grid">`;
         currentGroup.forEach((day, dayIndex) => {
-            const absoluteDayNumber = startDayCount + dayIndex; // 🎯 Yeh har specific card ko sahi day id dega
+            const absoluteDayNumber = startDayCount + dayIndex;
             const safeDateStr = day.date.replace(/\s+/g, '_');
             const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
             
@@ -481,6 +529,7 @@
         dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No specific tasks scheduled for today. Backlogs clear karo ya chill karo!</p>`;
     }
 
+    // 🎯 DYNAMIC BLOCK NAVIGATION LOGIC
     function showBlock(blockId) {
         document.querySelectorAll('.pdf-page-block').forEach(block => {
             block.style.display = 'none';
@@ -490,10 +539,33 @@
             selectedBlock.style.display = 'block';
         }
         selectMenu.value = blockId;
+        
+        // Buttons state validation (Disable/Enable logic)
+        const currentNum = parseInt(blockId.split('-')[1]);
+        prevBtn.disabled = (currentNum === 1);
+        nextBtn.disabled = (currentNum === totalBlocks);
     }
 
     selectMenu.addEventListener('change', function() {
         showBlock(this.value);
+    });
+
+    // Previous Button click
+    prevBtn.addEventListener('click', () => {
+        const currentBlock = selectMenu.value;
+        const currentNum = parseInt(currentBlock.split('-')[1]);
+        if (currentNum > 1) {
+            showBlock(`block-${currentNum - 1}`);
+        }
+    });
+
+    // Next Button click
+    nextBtn.addEventListener('click', () => {
+        const currentBlock = selectMenu.value;
+        const currentNum = parseInt(currentBlock.split('-')[1]);
+        if (currentNum < totalBlocks) {
+            showBlock(`block-${currentNum + 1}`);
+        }
     });
 
     document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
