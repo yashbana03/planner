@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Extended Edition</title>
+    <title>CDS Journey Planner - Extended Cloud Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -38,6 +38,36 @@
         header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.5px; }
         header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
         
+        /* ☁️ LIVE CLOUD STATUS BAR */
+        .cloud-status {
+            background: #f0fdf4;
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #15803d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
         .selector-box {
             background: var(--card-bg);
             border: 2px solid var(--primary);
@@ -74,15 +104,9 @@
             font-weight: 600;
             color: var(--text);
         }
-        .selector-box select:focus {
-            border-color: var(--primary);
-        }
+        .selector-box select:focus { border-color: var(--primary); }
 
-        .nav-btn-container {
-            display: flex;
-            gap: 15px;
-            margin-top: 5px;
-        }
+        .nav-btn-container { display: flex; gap: 15px; margin-top: 5px; }
         .nav-btn {
             background-color: var(--primary);
             color: white;
@@ -98,15 +122,8 @@
             gap: 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .nav-btn:hover {
-            background-color: #1d4ed8;
-        }
-        .nav-btn:disabled {
-            background-color: #9ca3af;
-            cursor: not-allowed;
-            opacity: 0.6;
-            box-shadow: none;
-        }
+        .nav-btn:hover { background-color: #1d4ed8; }
+        .nav-btn:disabled { background-color: #9ca3af; cursor: not-allowed; opacity: 0.6; box-shadow: none; }
 
         .todays-dashboard-box {
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
@@ -153,11 +170,7 @@
             accent-color: var(--success);
             cursor: pointer;
         }
-        .no-tasks-msg {
-            color: #065f46;
-            font-weight: 600;
-            font-style: italic;
-        }
+        .no-tasks-msg { color: #065f46; font-weight: 600; font-style: italic; }
 
         .pdf-page-block {
             background: var(--card-bg);
@@ -176,129 +189,35 @@
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
-        .page-title {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        .pdf-tag {
-            background: #3b82f6;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
+        .page-title { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+        .pdf-tag { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
 
-        .page-daily-work {
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            border-radius: 10px;
-            padding: 15px 20px;
-            margin-bottom: 25px;
-        }
+        .page-daily-work { background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 15px 20px; margin-bottom: 25px; }
         .page-daily-work h4 { margin: 0 0 15px 0; color: #b45309; font-size: 1rem; text-transform: uppercase;}
         
-        .ticker-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 5px;
-        }
-        .ticker-row {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px dashed #fef3c7;
-        }
+        .ticker-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
+        .ticker-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed #fef3c7; }
         .ticker-row:last-child { border-bottom: none; }
         
-        .task-label {
-            flex: 2;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #1f2937;
-        }
-        .checkbox-group {
-            flex: 3;
-            display: flex;
-            justify-content: space-between;
-            max-width: 500px;
-        }
-        .ticker-cell {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        .ticker-cell span {
-            font-size: 0.7rem;
-            color: #b45309;
-            font-weight: bold;
-        }
-        .ticker-cell input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #b45309;
-            cursor: pointer;
-        }
+        .task-label { flex: 2; font-weight: 600; font-size: 0.9rem; color: #1f2937; }
+        .checkbox-group { flex: 3; display: flex; justify-content: space-between; max-width: 500px; }
+        .ticker-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .ticker-cell span { font-size: 0.7rem; color: #b45309; font-weight: bold; }
+        .ticker-cell input[type="checkbox"] { width: 16px; height: 16px; accent-color: #b45309; cursor: pointer; }
 
-        .tasks-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px;
-        }
-        .day-box {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px;
-            position: relative;
-            transition: all 0.3s ease;
-        }
+        .tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+        .day-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; position: relative; transition: all 0.3s ease; }
         .day-box.sunday { background: #fef2f2; border-color: #fee2e2; }
-        .day-box h5 {
-            margin: 0 0 10px 0;
-            font-size: 1.05rem;
-            color: var(--primary);
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .day-box h5 { margin: 0 0 10px 0; font-size: 1.05rem; color: var(--primary); border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
         .day-box.sunday h5 { color: #dc2626; }
         .sunday-tag { font-size: 0.7rem; color: #dc2626; font-weight: bold; }
 
-        .day-box.today-highlight {
-            border: 2.5px solid #10b981 !important;
-            background: #f0fdf4 !important;
-        }
-        .today-badge {
-            background: #10b981;
-            color: white;
-            font-size: 0.65rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
+        .day-box.today-highlight { border: 2.5px solid #10b981 !important; background: #f0fdf4 !important; }
+        .today-badge { background: #10b981; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
         .task-list { list-style: none; padding: 0; margin: 0; }
-        .task-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-size: 0.88rem;
-            line-height: 1.3;
-        }
-        .task-item input[type="checkbox"] {
-            margin-right: 8px;
-            margin-top: 2px;
-            width: 14px;
-            height: 14px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
+        .task-item { display: flex; align-items: flex-start; margin-bottom: 8px; cursor: pointer; font-size: 0.88rem; line-height: 1.3; }
+        .task-item input[type="checkbox"] { margin-right: 8px; margin-top: 2px; width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; }
         .task-text { flex: 1; }
         .completed .task-text { text-decoration: line-through; color: #9ca3af; }
     </style>
@@ -310,6 +229,12 @@
         <h1>CDS JOURNEY PLANNER</h1>
         <p>Smart Auto-Focus Dashboard Grid</p>
     </header>
+
+    <!-- ☁️ LIVE AUTOMATIC CLOUD STATUS BAR -->
+    <div class="cloud-status">
+        <span class="status-dot"></span>
+        <span id="sync-status-text">Connecting to Personal Cloud Sheet...</span>
+    </div>
 
     <div class="selector-box">
         <div class="selector-controls">
@@ -331,7 +256,16 @@
 </div>
 
 <script>
-    // 🔥 MAINE YAHAN PAR DIARY WRITING KO BHI LIST MEIN ADD KAR DIYA HAI
+    // ⚠️ AUTOMATIC SHEET INITIALIZATION
+    let SCRIPT_URL = localStorage.getItem('google_sheet_sync_url') || '';
+
+    if (!SCRIPT_URL) {
+        SCRIPT_URL = prompt("Apna Google Apps Script Deployment URL yahan paste karein (Yeh sirf ek baar karna hai):");
+        if (SCRIPT_URL) {
+            localStorage.setItem('google_sheet_sync_url', SCRIPT_URL.trim());
+        }
+    }
+
     const dailyEssentials = [
         "BOOK READING",
         "30 MIN CURRENT AFFAIRS REVISION",
@@ -531,13 +465,9 @@
     }
 
     function showBlock(blockId) {
-        document.querySelectorAll('.pdf-page-block').forEach(block => {
-            block.style.display = 'none';
-        });
+        document.querySelectorAll('.pdf-page-block').forEach(block => { block.style.display = 'none'; });
         const selectedBlock = document.getElementById(blockId);
-        if(selectedBlock) {
-            selectedBlock.style.display = 'block';
-        }
+        if(selectedBlock) { selectedBlock.style.display = 'block'; }
         selectMenu.value = blockId;
         
         const currentNum = parseInt(blockId.split('-')[1]);
@@ -545,25 +475,61 @@
         nextBtn.disabled = (currentNum === totalBlocks);
     }
 
-    selectMenu.addEventListener('change', function() {
-        showBlock(this.value);
-    });
+    selectMenu.addEventListener('change', function() { showBlock(this.value); });
 
     prevBtn.addEventListener('click', () => {
         const currentBlock = selectMenu.value;
         const currentNum = parseInt(currentBlock.split('-')[1]);
-        if (currentNum > 1) {
-            showBlock(`block-${currentNum - 1}`);
-        }
+        if (currentNum > 1) { showBlock(`block-${currentNum - 1}`); }
     });
 
     nextBtn.addEventListener('click', () => {
         const currentBlock = selectMenu.value;
         const currentNum = parseInt(currentBlock.split('-')[1]);
-        if (currentNum < totalBlocks) {
-            showBlock(`block-${currentNum + 1}`);
-        }
+        if (currentNum < totalBlocks) { showBlock(`block-${currentNum + 1}`); }
     });
+
+    // 📡 LIVE CLOUD DOWNWARD SYNC (LOAD FROM SHEET)
+    async function loadFromCloud() {
+        if (!SCRIPT_URL) {
+            document.getElementById('sync-status-text').innerText = "⚠ Setup Required: Refresh page to add script URL.";
+            return;
+        }
+        document.getElementById('sync-status-text').innerText = "Syncing with Cloud Sheet...";
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const cloudData = await response.json();
+            
+            Object.keys(cloudData).forEach(key => {
+                localStorage.setItem(key, cloudData[key]);
+                const isChecked = (cloudData[key] === 'true' || cloudData[key] === true);
+                
+                // Update all matching UI checkboxes
+                document.querySelectorAll(`[data-key="${key}"]`).forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                    const item = checkbox.parentElement;
+                    if(isChecked) item.classList.add('completed'); else item.classList.remove('completed');
+                });
+            });
+            document.getElementById('sync-status-text').innerText = "✓ Cloud Data Auto-Synced Perfectly!";
+        } catch (e) {
+            document.getElementById('sync-status-text').innerText = "⚠ Running Offline Mode (Using Device Storage Only)";
+            console.log("Sync Error: ", e);
+        }
+    }
+
+    // 📡 LIVE CLOUD UPWARD SYNC (SAVE TO SHEET AUTOMATICALLY)
+    async function saveToCloud(key, value) {
+        if (!SCRIPT_URL) return;
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: key, value: value })
+            });
+        } catch (e) { console.log("Cloud Save Error:", e); }
+    }
 
     document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
@@ -572,43 +538,20 @@
             
             if(key) {
                 localStorage.setItem(key, isChecked);
+                saveToCloud(key, isChecked); // Instant online save trigger!
             }
 
-            const dashId = this.getAttribute('data-dash-id');
+            // Sync Dashboard and Grid mirrors instantly
+            const dashId = this.getAttribute('data-dash-id') || this.getAttribute('data-main-id');
             if (dashId) {
-                const mainCheckbox = document.querySelector(`[data-main-id="${dashId}"]`);
-                if (mainCheckbox) mainCheckbox.checked = isChecked;
-                
-                const itemDash = document.getElementById(`dash-item-${dashId}`);
-                const itemMain = document.getElementById(`main-item-${dashId}`);
-                if(isChecked) {
-                    if(itemDash) itemDash.classList.add('completed');
-                    if(itemMain) itemMain.classList.add('completed');
-                } else {
-                    if(itemDash) itemDash.classList.remove('completed');
-                    if(itemMain) itemMain.classList.remove('completed');
-                }
-            }
-
-            const mainId = this.getAttribute('data-main-id');
-            if (mainId) {
-                const dashCheckbox = document.querySelector(`[data-dash-id="${mainId}"]`);
-                if (dashCheckbox) dashCheckbox.checked = isChecked;
-                
-                const itemDash = document.getElementById(`dash-item-${mainId}`);
-                const itemMain = document.getElementById(`main-item-${mainId}`);
-                if(isChecked) {
-                    if(itemDash) itemDash.classList.add('completed');
-                    if(itemMain) itemMain.classList.add('completed');
-                } else {
-                    if(itemDash) itemDash.classList.remove('completed');
-                    if(itemMain) itemMain.classList.remove('completed');
-                }
-            }
-            
-            if(!dashId && !mainId) {
+                document.querySelectorAll(`[data-dash-id="${dashId}"], [data-main-id="${dashId}"]`).forEach(el => {
+                    el.checked = isChecked;
+                    const item = el.parentElement;
+                    if(isChecked) item.classList.add('completed'); else item.classList.remove('completed');
+                });
+            } else {
                 const listItem = this.parentElement;
-                if (listItem.classList.contains('task-item')) {
+                if (listItem.classList.contains('task-item') || listItem.classList.contains('ticker-cell')) {
                     if (isChecked) listItem.classList.add('completed');
                     else listItem.classList.remove('completed');
                 }
@@ -618,6 +561,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         showBlock(detectedBlockId);
+        loadFromCloud(); // Opens website -> instantly fetches latest data from Google Sheet
     });
 </script>
 
