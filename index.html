@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Extended Cloud Edition</title>
+    <title>CDS Journey Planner - Hybrid Cloud/Offline Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -38,7 +38,7 @@
         header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.5px; }
         header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
         
-        /* ☁️ LIVE AUTOMATIC CLOUD STATUS BAR */
+        /* ☁️ HYBRID MODE STATUS BAR */
         .cloud-status-bar {
             background: #ffffff;
             border: 2px solid var(--primary);
@@ -69,15 +69,22 @@
             background-color: var(--success);
             animation: pulse 1.5s infinite;
         }
+        .status-dot.offline-dot {
+            background-color: var(--accent);
+        }
         @keyframes pulse {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
+        .action-btns-container {
+            display: flex;
+            gap: 8px;
+        }
         .reset-url-btn {
             background: #f3f4f6;
             border: 1px solid var(--border);
-            padding: 5px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.8rem;
             cursor: pointer;
@@ -85,6 +92,41 @@
             transition: background 0.2s;
         }
         .reset-url-btn:hover { background: #e5e7eb; }
+
+        /* 📊 MODE SELECTION MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000;
+        }
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 { margin-top: 0; color: var(--primary); font-size: 1.4rem; }
+        .modal-box p { color: #4b5563; font-size: 0.95rem; line-height: 1.4; margin-bottom: 20px; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+        .mode-btn {
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .mode-btn:active { transform: scale(0.98); }
+        .btn-cloud { background: var(--primary); color: white; }
+        .btn-cloud:hover { background: #1d4ed8; }
+        .btn-offline { background: #f3f4f6; color: var(--text); border: 2px solid var(--border); }
+        .btn-offline:hover { background: #e5e7eb; }
 
         .selector-box {
             background: var(--card-bg);
@@ -122,15 +164,9 @@
             font-weight: 600;
             color: var(--text);
         }
-        .selector-box select:focus {
-            border-color: var(--primary);
-        }
+        .selector-box select:focus { border-color: var(--primary); }
 
-        .nav-btn-container {
-            display: flex;
-            gap: 15px;
-            margin-top: 5px;
-        }
+        .nav-btn-container { display: flex; gap: 15px; margin-top: 5px; }
         .nav-btn {
             background-color: var(--primary);
             color: white;
@@ -146,15 +182,8 @@
             gap: 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .nav-btn:hover {
-            background-color: #1d4ed8;
-        }
-        .nav-btn:disabled {
-            background-color: #9ca3af;
-            cursor: not-allowed;
-            opacity: 0.6;
-            box-shadow: none;
-        }
+        .nav-btn:hover { background-color: #1d4ed8; }
+        .nav-btn:disabled { background-color: #9ca3af; cursor: not-allowed; opacity: 0.6; box-shadow: none; }
 
         .todays-dashboard-box {
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
@@ -201,11 +230,7 @@
             accent-color: var(--success);
             cursor: pointer;
         }
-        .no-tasks-msg {
-            color: #065f46;
-            font-weight: 600;
-            font-style: italic;
-        }
+        .no-tasks-msg { color: #065f46; font-weight: 600; font-style: italic; }
 
         .pdf-page-block {
             background: var(--card-bg);
@@ -224,134 +249,51 @@
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
-        .page-title {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        .pdf-tag {
-            background: #3b82f6;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
+        .page-title { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+        .pdf-tag { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
 
-        .page-daily-work {
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            border-radius: 10px;
-            padding: 15px 20px;
-            margin-bottom: 25px;
-        }
+        .page-daily-work { background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 15px 20px; margin-bottom: 25px; }
         .page-daily-work h4 { margin: 0 0 15px 0; color: #b45309; font-size: 1rem; text-transform: uppercase;}
         
-        .ticker-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 5px;
-        }
-        .ticker-row {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px dashed #fef3c7;
-        }
+        .ticker-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
+        .ticker-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed #fef3c7; }
         .ticker-row:last-child { border-bottom: none; }
         
-        .task-label {
-            flex: 2;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #1f2937;
-        }
-        .checkbox-group {
-            flex: 3;
-            display: flex;
-            justify-content: space-between;
-            max-width: 500px;
-        }
-        .ticker-cell {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        .ticker-cell span {
-            font-size: 0.7rem;
-            color: #b45309;
-            font-weight: bold;
-        }
-        .ticker-cell input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #b45309;
-            cursor: pointer;
-        }
+        .task-label { flex: 2; font-weight: 600; font-size: 0.9rem; color: #1f2937; }
+        .checkbox-group { flex: 3; display: flex; justify-content: space-between; max-width: 500px; }
+        .ticker-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .ticker-cell span { font-size: 0.7rem; color: #b45309; font-weight: bold; }
+        .ticker-cell input[type="checkbox"] { width: 16px; height: 16px; accent-color: #b45309; cursor: pointer; }
 
-        .tasks-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px;
-        }
-        .day-box {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px;
-            position: relative;
-            transition: all 0.3s ease;
-        }
+        .tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+        .day-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; position: relative; transition: all 0.3s ease; }
         .day-box.sunday { background: #fef2f2; border-color: #fee2e2; }
-        .day-box h5 {
-            margin: 0 0 10px 0;
-            font-size: 1.05rem;
-            color: var(--primary);
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .day-box h5 { margin: 0 0 10px 0; font-size: 1.05rem; color: var(--primary); border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
         .day-box.sunday h5 { color: #dc2626; }
         .sunday-tag { font-size: 0.7rem; color: #dc2626; font-weight: bold; }
 
-        .day-box.today-highlight {
-            border: 2.5px solid #10b981 !important;
-            background: #f0fdf4 !important;
-        }
-        .today-badge {
-            background: #10b981;
-            color: white;
-            font-size: 0.65rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
+        .day-box.today-highlight { border: 2.5px solid #10b981 !important; background: #f0fdf4 !important; }
+        .today-badge { background: #10b981; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
         .task-list { list-style: none; padding: 0; margin: 0; }
-        .task-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-size: 0.88rem;
-            line-height: 1.3;
-        }
-        .task-item input[type="checkbox"] {
-            margin-right: 8px;
-            margin-top: 2px;
-            width: 14px;
-            height: 14px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
+        .task-item { display: flex; align-items: flex-start; margin-bottom: 8px; cursor: pointer; font-size: 0.88rem; line-height: 1.3; }
+        .task-item input[type="checkbox"] { margin-right: 8px; margin-top: 2px; width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; }
         .task-text { flex: 1; }
         .completed .task-text { text-decoration: line-through; color: #9ca3af; }
     </style>
 </head>
 <body>
+
+<div id="mode-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <h3>🎯 Choose Planner Mode</h3>
+        <p>Aap is planner ko kaise chalana chahte hain? Choose karein:</p>
+        <div class="modal-btns">
+            <button class="mode-btn btn-cloud" onclick="selectPlannerMode('cloud')">☁️ Cloud Sync (Laptop + Mobile Sync)</button>
+            <button class="mode-btn btn-offline" onclick="selectPlannerMode('offline')">📱 Offline Mode (Single Device Only)</button>
+        </div>
+    </div>
+</div>
 
 <div class="container">
     <header>
@@ -362,9 +304,12 @@
     <div class="cloud-status-bar">
         <div class="status-info">
             <span id="sync-dot" class="status-dot"></span>
-            <span id="sync-status-text">Checking Live Sync Config...</span>
+            <span id="sync-status-text">Checking Configuration...</span>
         </div>
-        <button class="reset-url-btn" onclick="resetCloudUrl()">🔄 Reset Apps Script Link</button>
+        <div class="action-btns-container">
+            <button id="reset-link-btn" class="reset-url-btn" onclick="askForNewLink()" style="display: none;">🔄 Update Apps Script Link</button>
+            <button class="reset-url-btn" onclick="changeAppModeDirectly()">⚙️ Switch Mode</button>
+        </div>
     </div>
 
     <div class="selector-box">
@@ -387,23 +332,58 @@
 </div>
 
 <script>
-    // 📡 DYNAMIC DEPLOYMENT CONFIGURATION
+    let APP_MODE = localStorage.getItem('planner_app_mode') || ''; // 'cloud' or 'offline'
     let SCRIPT_URL = localStorage.getItem('google_sheet_sync_url') || '';
 
-    function checkScriptUrl() {
-        if (!SCRIPT_URL) {
-            SCRIPT_URL = prompt("Apna Google Apps Script Deployment URL yahan paste karo (Yeh sirf ek baar karna padega):");
-            if (SCRIPT_URL) {
-                localStorage.setItem('google_sheet_sync_url', SCRIPT_URL.trim());
-            }
+    function initModeSystem() {
+        if (!APP_MODE) {
+            document.getElementById('mode-modal').style.display = 'flex';
+        } else {
+            setupModeUI();
         }
     }
 
-    function resetCloudUrl() {
-        let newUrl = prompt("Naya Google Apps Script Web App URL paste karein:", SCRIPT_URL);
-        if (newUrl) {
-            localStorage.setItem('google_sheet_sync_url', newUrl.trim());
-            window.location.reload();
+    function selectPlannerMode(mode) {
+        localStorage.setItem('planner_app_mode', mode);
+        APP_MODE = mode;
+        document.getElementById('mode-modal').style.display = 'none';
+        
+        if (mode === 'cloud') {
+            askForNewLink();
+        } else {
+            setupModeUI();
+        }
+    }
+
+    function askForNewLink() {
+        let url = prompt("Apna Google Apps Script Web App URL yahan paste karein:");
+        if (url) {
+            localStorage.setItem('google_sheet_sync_url', url.trim());
+            SCRIPT_URL = url.trim();
+        } else if (!SCRIPT_URL) {
+            localStorage.setItem('planner_app_mode', 'offline');
+            APP_MODE = 'offline';
+        }
+        window.location.reload();
+    }
+
+    function changeAppModeDirectly() {
+        localStorage.removeItem('planner_app_mode');
+        window.location.reload();
+    }
+
+    function setupModeUI() {
+        if (APP_MODE === 'offline') {
+            document.getElementById('sync-dot').className = "status-dot offline-dot";
+            document.getElementById('sync-status-text').innerText = "📱 Offline Mode Active (Saving on this device)";
+            document.getElementById('reset-link-btn').style.display = 'none';
+        } else {
+            document.getElementById('reset-link-btn').style.display = 'inline-block';
+            if (!SCRIPT_URL) {
+                document.getElementById('sync-status-text').innerText = "🔴 Cloud URL Required. Click Update Link.";
+            } else {
+                loadFromCloud();
+            }
         }
     }
 
@@ -425,7 +405,6 @@
         { date: "30 MAY", tasks: ["Tissue", "Feb smiling buddha Revision", "Noun practice", "New pattern parts of speech"] },
         { date: "31 MAY", isSunday: true, tasks: ["Polity Revision", "Backlogs", "Watch Jan CA class"] },
         { date: "1 JUNE", tasks: ["Life processes", "February smiling buddha Revision", "Watch Feb CA class"] },
-        
         { date: "2 JUNE", tasks: ["Life processes", "March smiling buddha Revision", "Homonyms Revision", "S1-S6 practice"] },
         { date: "3 JUNE", tasks: ["Revise all polity topics covered so far", "March smiling buddha Revision", "Watch 11 most Asked Homonyms"] },
         { date: "4 JUNE", tasks: ["State legislature + panchayat + municipalities", "April smiling buddha Revision", "Pronoun", "Practice new pattern POS", "Fill ups practice", "PQRS practice", "Watch march CA class"] },
@@ -434,7 +413,6 @@
         { date: "7 JUNE", isSunday: true, tasks: ["Revise all Biology Topic covered", "Cloze test practice"] },
         { date: "8 JUNE", tasks: ["Disease", "January smiling buddha Revision", "Verb"] },
         { date: "9 JUNE", tasks: ["Plants & Human hormones", "Jan smiling buddha Revision", "Idioms & phrases"] },
-        
         { date: "10 JUNE", tasks: ["Reproduction", "Jan smiling buddha Revision", "Verb practice", "Fill ups", "Homonyms Revision"] },
         { date: "11 JUNE", tasks: ["Revise polity topics covered so far", "Feb smiling buddha Revision"] },
         { date: "12 JUNE", tasks: ["Fundamental Rights", "Feb smiling buddha Revision", "Subject verb Agreement", "Idioms & phrases Revision"] },
@@ -443,7 +421,6 @@
         { date: "15 JUNE", tasks: ["Diversity in living organisms", "Feb smiling buddha Revision", "Discourse marker", "Cloze test practice", "Watch BAD series class 3", "Error practice"] },
         { date: "16 JUNE", tasks: ["Control & coordination + formed elements + blood", "March smiling buddha Revision", "Question tag", "PQRS practice", "Idioms & phrases Revision"] },
         { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May CA class"] },
-        
         { date: "18 JUNE", tasks: ["Making of the constitution", "March smiling buddha Revision", "New pattern POS practice", "S1-S6 practice"] },
         { date: "19 JUNE", tasks: ["Emergency provisions + Amendments & the constitution", "April smiling buddha revision", "Homonyms Revision", "S1-S2 practice"] },
         { date: "20 JUNE", tasks: ["Subordinates courts + HC + SC", "April smiling buddha revision", "S1-S6 + PQRS practice", "Fill ups practice", "Homonyms revision"] },
@@ -452,7 +429,6 @@
         { date: "23 JUNE", tasks: ["Preamble", "April smiling buddha revision", "Grammar based error practice", "Solve previous year POS questions", "Idioms & phrases revision"] },
         { date: "24 JUNE", tasks: ["Complete Biology Revision", "April smiling buddha revision", "Solve any previous year english question paper", "S1-S6 practice", "Solve previous year S1-S2 question", "Watch vocab class", "Idioms & phrases revision"] },
         { date: "25 JUNE", tasks: ["Universe, Geology & Geological time scale", "Jan smiling buddha revision", "preposition", "cloze test"] },
-        
         { date: "26 JUNE", tasks: ["latitude, longitude & interior of the earth", "Jan smiling buddha revision", "preposition", "phrasal verbs", "PQRS practice"] },
         { date: "27 JUNE", tasks: ["Earthquake and Volcanoes", "Jan smiling buddha revision", "fixed preposition", "preposition based fill ups", "SI-S6 practice"] },
         { date: "28 JUNE", isSunday: true, tasks: ["complete polity Revision"] },
@@ -461,7 +437,6 @@
         { date: "1 JULY", tasks: ["Metals & non-metals", "feb smiling buddha revision", "New pattern POS practice", "Homonyms Revision", "S1-S6 practice"] },
         { date: "2 JULY", tasks: ["Carbon & its compounds", "march smiling buddha revision", "Discourse marker", "S1-S2 practice", "Homonyms Revision"] },
         { date: "3 JULY", tasks: ["oceanic basin + ocean current", "march smiling buddha revision", "Grammar based error practice", "Idioms & phrases"] },
-        
         { date: "4 JULY", tasks: ["coral reefs & tides", "march smiling buddha revision", "voice", "Narration", "S1-S2 practice"] },
         { date: "5 JULY", tasks: ["Revise physical Geography covered so far", "solve any previous year english paper"] },
         { date: "6 JULY", tasks: ["chemical Reaction & equation", "April smiling buddha revision", "voice practice", "Homonyms revision", "S1-S6 practice", "S1-S2 practice", "Idioms & Phrase Revision"] },
@@ -470,7 +445,6 @@
         { date: "9 JULY", isSunday: true, tasks: ["state of matter", "may smiling buddha revision", "Narration practice"] },
         { date: "10 JULY", tasks: ["earth, Atmosphere, heat Budget, layers of earth's", "may smiling buddha revision", "Articles + Determiner", "S1-S6 practice", "Idioms & Phrases Revision"] },
         { date: "11 JULY", tasks: ["Winds pressure belt + cyclones + Anticyclone", "may smiling buddha revision", "Articles + Determiner practice new pattern pos", "cloze test"] },
-        
         { date: "12 JULY", isSunday: true, tasks: ["inversion & temp + forms of condensation + clouds + precipitation", "english full mock test"] },
         { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
     ];
@@ -602,17 +576,13 @@
             `;
         });
     } else {
-        dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No specific tasks scheduled for today. Backlogs clear karo ya chill karo!</p>`;
+        dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No tasks scheduled for today.</p>`;
     }
 
     function showBlock(blockId) {
-        document.querySelectorAll('.pdf-page-block').forEach(block => {
-            block.style.display = 'none';
-        });
+        document.querySelectorAll('.pdf-page-block').forEach(block => { block.style.display = 'none'; });
         const selectedBlock = document.getElementById(blockId);
-        if(selectedBlock) {
-            selectedBlock.style.display = 'block';
-        }
+        if(selectedBlock) { selectedBlock.style.display = 'block'; }
         selectMenu.value = blockId;
         
         const currentNum = parseInt(blockId.split('-')[1]);
@@ -620,33 +590,22 @@
         nextBtn.disabled = (currentNum === totalBlocks);
     }
 
-    selectMenu.addEventListener('change', function() {
-        showBlock(this.value);
-    });
-
+    selectMenu.addEventListener('change', function() { showBlock(this.value); });
     prevBtn.addEventListener('click', () => {
         const currentBlock = selectMenu.value;
         const currentNum = parseInt(currentBlock.split('-')[1]);
-        if (currentNum > 1) {
-            showBlock(`block-${currentNum - 1}`);
-        }
+        if (currentNum > 1) { showBlock(`block-${currentNum - 1}`); }
     });
-
     nextBtn.addEventListener('click', () => {
         const currentBlock = selectMenu.value;
         const currentNum = parseInt(currentBlock.split('-')[1]);
-        if (currentNum < totalBlocks) {
-            showBlock(`block-${currentNum + 1}`);
-        }
+        if (currentNum < totalBlocks) { showBlock(`block-${currentNum + 1}`); }
     });
 
-    // 📡 CLOUD DOWNLOAD SYNC (POORA DATA EK BAAR MEIN LOAD KARNE KE LIYE)
+    // 📡 CLOUD DOWNLOAD SYNC
     async function loadFromCloud() {
-        if (!SCRIPT_URL) {
-            document.getElementById('sync-status-text').innerText = "🔴 Setup Required: Refresh page or add script URL.";
-            return;
-        }
-        document.getElementById('sync-status-text').innerText = "Fetching real-time data from Cloud Sheet...";
+        if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
+        document.getElementById('sync-status-text').innerText = "Real-time updates fetch ho rha hai...";
         try {
             const response = await fetch(SCRIPT_URL);
             const cloudData = await response.json();
@@ -661,24 +620,19 @@
                     if(isChecked) item.classList.add('completed'); else item.classList.remove('completed');
                 });
                 
-                // Cross UI Element Syncing
                 const dashId = checkboxAttributeExtractor(key);
-                if (dashId) {
-                    uiMirrorSync(dashId, isChecked);
-                }
+                if (dashId) { uiMirrorSync(dashId, isChecked); }
             });
-            document.getElementById('sync-dot').classList.add('active');
-            document.getElementById('sync-status-text').innerText = "🟢 Connected: Live Data Auto-Synced Perfectly!";
+            document.getElementById('sync-dot').className = "status-dot active";
+            document.getElementById('sync-status-text').innerText = "🟢 Live Sync Connected!";
         } catch (e) {
-            document.getElementById('sync-status-text').innerText = "🟡 Running Offline Mode (Using Device Storage Only)";
+            document.getElementById('sync-status-text').innerText = "🟡 Connection Failed (Using local storage)";
             console.log("Sync Error: ", e);
         }
     }
 
     function checkboxAttributeExtractor(key) {
-        if (key.startsWith('task_')) {
-            return key.replace('task_', '');
-        }
+        if (key.startsWith('task_')) return key.replace('task_', '');
         return null;
     }
 
@@ -694,9 +648,9 @@
         }
     }
 
-    // 📡 CLOUD UPLOAD SYNC (TAP KARTE HI AUTOMATIC CHALEGA)
+    // 📡 CLOUD UPLOAD SYNC
     async function saveToCloud(key, value) {
-        if (!SCRIPT_URL) return;
+        if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -714,7 +668,9 @@
             
             if(key) {
                 localStorage.setItem(key, isChecked);
-                saveToCloud(key, isChecked); // Trigger live server sync instantly!
+                if (APP_MODE === 'cloud') {
+                    saveToCloud(key, isChecked);
+                }
             }
 
             const dashId = this.getAttribute('data-dash-id');
@@ -742,9 +698,8 @@
     });
 
     window.addEventListener('DOMContentLoaded', () => {
-        checkScriptUrl();
+        initModeSystem();
         showBlock(detectedBlockId);
-        loadFromCloud(); // Website load hote hi direct Google Sheet se fresh data khinch lega
     });
 </script>
 
