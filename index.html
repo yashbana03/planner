@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Navigation Edition</title>
+    <title>CDS Journey Planner - Extended Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -78,7 +78,6 @@
             border-color: var(--primary);
         }
 
-        /* 🎯 NAV BUTTONS STYLES */
         .nav-btn-container {
             display: flex;
             gap: 15px;
@@ -332,12 +331,14 @@
 </div>
 
 <script>
+    // 🔥 MAINE YAHAN PAR DIARY WRITING KO BHI LIST MEIN ADD KAR DIYA HAI
     const dailyEssentials = [
         "BOOK READING",
         "30 MIN CURRENT AFFAIRS REVISION",
         "KHELGHAR QUIZ",
         "NEWSPAPER",
-        "DRR"
+        "DRR",
+        "DIARY WRITING"
     ];
 
     const scheduleData = [
@@ -366,7 +367,7 @@
         { date: "14 JUNE", isSunday: true, tasks: ["Revise Biology topics covered so far"] },
         { date: "15 JUNE", tasks: ["Diversity in living organisms", "Feb smiling buddha Revision", "Discourse marker", "Cloze test practice", "Watch BAD series class 3", "Error practice"] },
         { date: "16 JUNE", tasks: ["Control & coordination + formed elements + blood", "March smiling buddha Revision", "Question tag", "PQRS practice", "Idioms & phrases Revision"] },
-        { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May May CA class"] },
+        { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May CA class"] },
         
         { date: "18 JUNE", tasks: ["Making of the constitution", "March smiling buddha Revision", "New pattern POS practice", "S1-S6 practice"] },
         { date: "19 JUNE", tasks: ["Emergency provisions + Amendments & the constitution", "April smiling buddha revision", "Homonyms Revision", "S1-S2 practice"] },
@@ -529,7 +530,6 @@
         dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No specific tasks scheduled for today. Backlogs clear karo ya chill karo!</p>`;
     }
 
-    // 🎯 DYNAMIC BLOCK NAVIGATION LOGIC
     function showBlock(blockId) {
         document.querySelectorAll('.pdf-page-block').forEach(block => {
             block.style.display = 'none';
@@ -540,7 +540,6 @@
         }
         selectMenu.value = blockId;
         
-        // Buttons state validation (Disable/Enable logic)
         const currentNum = parseInt(blockId.split('-')[1]);
         prevBtn.disabled = (currentNum === 1);
         nextBtn.disabled = (currentNum === totalBlocks);
@@ -550,7 +549,6 @@
         showBlock(this.value);
     });
 
-    // Previous Button click
     prevBtn.addEventListener('click', () => {
         const currentBlock = selectMenu.value;
         const currentNum = parseInt(currentBlock.split('-')[1]);
@@ -559,7 +557,6 @@
         }
     });
 
-    // Next Button click
     nextBtn.addEventListener('click', () => {
         const currentBlock = selectMenu.value;
         const currentNum = parseInt(currentBlock.split('-')[1]);
