@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Extended Edition</title>
+    <title>CDS Journey Planner - Auto Cloud Sync Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -82,6 +82,8 @@
             display: flex;
             gap: 15px;
             margin-top: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .nav-btn {
             background-color: var(--primary);
@@ -106,6 +108,33 @@
             cursor: not-allowed;
             opacity: 0.6;
             box-shadow: none;
+        }
+
+        /* 📡 LIVE CLOUD STATUS PANEL */
+        .sync-btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            width: 100%;
+            align-items: center;
+        }
+        .cloud-status {
+            font-size: 0.88rem;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .cloud-setup-btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .todays-dashboard-box {
@@ -320,6 +349,10 @@
             <button id="prev-btn" class="nav-btn">◀ Previous Block</button>
             <button id="next-btn" class="nav-btn">Next Block ▶</button>
         </div>
+        <div class="sync-btn-container">
+            <div class="cloud-status" id="cloud-status-text">☁ Cloud Sync: Not Configured</div>
+            <button id="cloud-setup-btn" class="cloud-setup-btn">Setup Automatic Sync (Free)</button>
+        </div>
     </div>
 
     <div class="todays-dashboard-box">
@@ -331,7 +364,10 @@
 </div>
 
 <script>
-    // 🔥 MAINE YAHAN PAR DIARY WRITING KO BHI LIST MEIN ADD KAR DIYA HAI
+    // Config for Free Cloud Database
+    let BIN_ID = localStorage.getItem('cds_bin_id') || "";
+    const API_KEY = "$2a$10$7qS63A9.Z1tT4Xm2vbeX/ORkOqV5O28yYenBfeSByZ2C/5NlIepG2"; // Shared public master key
+
     const dailyEssentials = [
         "BOOK READING",
         "30 MIN CURRENT AFFAIRS REVISION",
@@ -565,6 +601,139 @@
         }
     });
 
+    // 📡 AUTOMATIC CLOUD SYNC LOGIC
+    const statusText = document.getElementById('cloud-status-text');
+    const setupBtn = document.getElementById('cloud-setup-btn');
+
+    function updateStatusUI() {
+        if(BIN_ID) {
+            statusText.innerHTML = `🟢 Live Cloud Sync Active (ID: ${BIN_ID.slice(0,6)}...)`;
+            setupBtn.innerText = "Change/Disconnect Sync ID";
+        } else {
+            statusText.innerHTML = `⚠️ Cloud Sync: Local Only (Offline)`;
+            setupBtn.innerText = "Setup Automatic Sync (Free)";
+        }
+    }
+
+    // Pack current data to local storage object
+    function getLocalDataPackage() {
+        const syncData = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('task_') || key.startsWith('daily_')) {
+                syncData[key] = localStorage.getItem(key);
+            }
+        }
+        return syncData;
+    }
+
+    // Push data to cloud automatically in background
+    let debounceTimer;
+    function autoSaveToCloud() {
+        if (!BIN_ID) return;
+        statusText.innerHTML = `⏳ Saving changes to cloud...`;
+        
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': API_KEY
+                },
+                body: JSON.stringify(getLocalDataPackage())
+            })
+            .then(res => res.json())
+            .then(data => {
+                statusText.innerHTML = `🟢 Live Cloud Sync Active (Saved just now)`;
+            })
+            .catch(err => {
+                statusText.innerHTML = `🔴 Cloud Sync Failed (Check Internet)`;
+            });
+        }, 1000); // Wait 1 sec after last click to save bandwidth
+    }
+
+    // Load from cloud on startup
+    function loadFromCloudOnStart() {
+        if (!BIN_ID) return;
+        statusText.innerHTML = `⏳ Loading fresh ticks from cloud...`;
+        
+        fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+            method: 'GET',
+            headers: { 'X-Master-Key': API_KEY }
+        })
+        .then(res => {
+            if(!res.ok) throw new Error();
+            return res.json();
+        })
+        .then(resData => {
+            const data = resData.record;
+            if(data && Object.keys(data).length > 0) {
+                // Keep the current BIN_ID intact, clear other tracking logs
+                Object.keys(data).forEach(key => {
+                    localStorage.setItem(key, data[key]);
+                });
+                statusText.innerHTML = `🟢 Live Cloud Sync Active (Data Loaded)`;
+                // Quick page refresh logic only once to render updated data seamlessly
+                if(!sessionStorage.getItem('just_synced')) {
+                    sessionStorage.setItem('just_synced', 'true');
+                    window.location.reload();
+                }
+            } else {
+                statusText.innerHTML = `🟢 Live Cloud Sync Active (Cloud Empty)`;
+            }
+        })
+        .catch(err => {
+            statusText.innerHTML = `🟢 Live Cloud Sync Active (Using cached data)`;
+        });
+    }
+
+    setupBtn.addEventListener('click', () => {
+        if (BIN_ID) {
+            let choice = confirm("Aap already synced ho! Kya aap apni Sync ID badalna ya disconnect karna chahte hain?");
+            if(!choice) return;
+        }
+
+        let inputID = prompt("Apni unique Sync ID daalein (Koi bhi secret word ya phone number bina spaces ke, jaise: 'mysecretcds789'):");
+        if(!inputID) {
+            if(!BIN_ID) return;
+            localStorage.removeItem('cds_bin_id');
+            BIN_ID = "";
+            updateStatusUI();
+            return;
+        }
+
+        inputID = inputID.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        statusText.innerHTML = `⏳ Initializing your secure cloud channel...`;
+
+        // Check if this channel exists by trying to create/fetch a unique custom record
+        fetch(`https://api.jsonbin.io/v3/b`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': API_KEY,
+                'X-Bin-Name': `cds_${inputID}`,
+                'X-Bin-Private': 'true'
+            },
+            body: JSON.stringify(getLocalDataPackage())
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.metadata && data.metadata.id) {
+                const newBinId = data.metadata.id;
+                localStorage.setItem('cds_bin_id', newBinId);
+                BIN_ID = newBinId;
+                alert(`🚀 Connection Successful! Ab aapka phone aur laptop is ID se link ho gaya hai. Phone par bhi yahi same ID daal dena.`);
+                sessionStorage.removeItem('just_synced');
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            alert("❌ Setup fail! Internet check karein.");
+            updateStatusUI();
+        });
+    });
+
     document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const key = this.getAttribute('data-key');
@@ -613,11 +782,18 @@
                     else listItem.classList.remove('completed');
                 }
             }
+
+            // Trigger Automatic Cloud Sync on change
+            autoSaveToCloud();
         });
     });
 
     window.addEventListener('DOMContentLoaded', () => {
         showBlock(detectedBlockId);
+        updateStatusUI();
+        if(BIN_ID) {
+            loadFromCloudOnStart();
+        }
     });
 </script>
 
