@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Cross Sync</title>
+    <title>CDS Journey Planner - Instant Auto Sync</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -38,32 +38,6 @@
         header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.5px; }
         header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
         
-        /* 🔄 MULTI-DEVICE SYNC JUGAD UI */
-        .sync-panel {
-            background: #fff7ed;
-            border: 2px dashed #f97316;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .sync-panel h4 { margin: 0 0 10px 0; color: #ea580c; font-size: 1.1rem; }
-        .sync-btn {
-            background-color: #f97316;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            margin: 5px;
-            transition: background 0.2s;
-        }
-        .sync-btn:hover { background-color: #ea580c; }
-        .sync-btn.import-btn { background-color: #2563eb; }
-        .sync-btn.import-btn:hover { background-color: #1d4ed8; }
-
         .selector-box {
             background: var(--card-bg);
             border: 2px solid var(--primary);
@@ -100,6 +74,10 @@
             font-weight: 600;
             color: var(--text);
         }
+        .selector-box select:focus {
+            border-color: var(--primary);
+        }
+
         .nav-btn-container {
             display: flex;
             gap: 15px;
@@ -116,8 +94,50 @@
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .nav-btn:disabled { background-color: #9ca3af; cursor: not-allowed; opacity: 0.6; }
+        .nav-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .nav-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+
+        /* 📡 INSTANT CLOUD SYNC UI */
+        .sync-btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            width: 100%;
+            align-items: center;
+        }
+        .cloud-status {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .cloud-setup-btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .cloud-setup-btn:hover { background-color: #059669; }
 
         .todays-dashboard-box {
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
@@ -125,11 +145,15 @@
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.15);
         }
         .todays-dashboard-box h3 {
             margin: 0 0 15px 0;
             color: #065f46;
             font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             border-bottom: 2px solid #a7f3d0;
             padding-bottom: 8px;
         }
@@ -146,11 +170,25 @@
             padding: 12px 15px;
             border-radius: 8px;
             border-left: 5px solid var(--success);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             display: flex;
             align-items: flex-start;
             font-weight: 500;
+            font-size: 0.95rem;
         }
-        .todays-task-item input[type="checkbox"] { margin-right: 10px; width: 16px; height: 16px; accent-color: var(--success); }
+        .todays-task-item input[type="checkbox"] {
+            margin-right: 10px;
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--success);
+            cursor: pointer;
+        }
+        .no-tasks-msg {
+            color: #065f46;
+            font-weight: 600;
+            font-style: italic;
+        }
 
         .pdf-page-block {
             background: var(--card-bg);
@@ -158,6 +196,7 @@
             border-radius: 16px;
             padding: 25px;
             margin-bottom: 40px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             display: none;
         }
         .page-header {
@@ -168,29 +207,129 @@
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
-        .page-title { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
-        .pdf-tag { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .page-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .pdf-tag {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
 
-        .page-daily-work { background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 15px 20px; margin-bottom: 25px; }
+        .page-daily-work {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+        }
         .page-daily-work h4 { margin: 0 0 15px 0; color: #b45309; font-size: 1rem; text-transform: uppercase;}
         
-        .ticker-table { width: 100%; border-collapse: collapse; }
-        .ticker-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed #fef3c7; }
-        .task-label { flex: 2; font-weight: 600; font-size: 0.9rem; }
-        .checkbox-group { flex: 3; display: flex; justify-content: space-between; max-width: 500px; }
-        .ticker-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .ticker-cell span { font-size: 0.7rem; color: #b45309; font-weight: bold; }
-        .ticker-cell input[type="checkbox"] { width: 16px; height: 16px; accent-color: #b45309; }
+        .ticker-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+        }
+        .ticker-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #fef3c7;
+        }
+        .ticker-row:last-child { border-bottom: none; }
+        
+        .task-label {
+            flex: 2;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1f2937;
+        }
+        .checkbox-group {
+            flex: 3;
+            display: flex;
+            justify-content: space-between;
+            max-width: 500px;
+        }
+        .ticker-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .ticker-cell span {
+            font-size: 0.7rem;
+            color: #b45309;
+            font-weight: bold;
+        }
+        .ticker-cell input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #b45309;
+            cursor: pointer;
+        }
 
-        .tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
-        .day-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .day-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
         .day-box.sunday { background: #fef2f2; border-color: #fee2e2; }
-        .day-box h5 { margin: 0 0 10px 0; font-size: 1.05rem; color: var(--primary); border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; }
-        .day-box.today-highlight { border: 2.5px solid #10b981 !important; background: #f0fdf4 !important; }
+        .day-box h5 {
+            margin: 0 0 10px 0;
+            font-size: 1.05rem;
+            color: var(--primary);
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .day-box.sunday h5 { color: #dc2626; }
+        .sunday-tag { font-size: 0.7rem; color: #dc2626; font-weight: bold; }
+
+        .day-box.today-highlight {
+            border: 2.5px solid #10b981 !important;
+            background: #f0fdf4 !important;
+        }
+        .today-badge {
+            background: #10b981;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
 
         .task-list { list-style: none; padding: 0; margin: 0; }
-        .task-item { display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; }
-        .task-item input[type="checkbox"] { margin-right: 8px; width: 14px; height: 14px; accent-color: var(--primary); }
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            line-height: 1.3;
+        }
+        .task-item input[type="checkbox"] {
+            margin-right: 8px;
+            margin-top: 2px;
+            width: 14px;
+            height: 14px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
         .task-text { flex: 1; }
         .completed .task-text { text-decoration: line-through; color: #9ca3af; }
     </style>
@@ -200,15 +339,8 @@
 <div class="container">
     <header>
         <h1>CDS JOURNEY PLANNER</h1>
-        <p>1-Click Fast Device Sync Edition</p>
+        <p>Smart Auto-Focus Dashboard Grid</p>
     </header>
-
-    <!-- 🔄 DEVICE SYNC DASHBOARD -->
-    <div class="sync-panel">
-        <h4>📱 Laptop ⇆ Phone Data Transfer</h4>
-        <button class="sync-btn" id="export-btn">📤 Step 1: Copy Sync Code (From Laptop)</button>
-        <button class="sync-btn import-btn" id="import-btn">📥 Step 2: Paste Sync Code (On Phone)</button>
-    </div>
 
     <div class="selector-box">
         <div class="selector-controls">
@@ -218,6 +350,10 @@
         <div class="nav-btn-container">
             <button id="prev-btn" class="nav-btn">◀ Previous Block</button>
             <button id="next-btn" class="nav-btn">Next Block ▶</button>
+        </div>
+        <div class="sync-btn-container">
+            <div class="cloud-status" id="cloud-status-text">☁ Cloud Sync: Not Configured</div>
+            <button id="cloud-setup-btn" class="cloud-setup-btn">Setup Automatic Sync (Instant)</button>
         </div>
     </div>
 
@@ -230,7 +366,17 @@
 </div>
 
 <script>
-    const dailyEssentials = ["BOOK READING", "30 MIN CURRENT AFFAIRS REVISION", "KHELGHAR QUIZ", "NEWSPAPER", "DRR", "DIARY WRITING"];
+    let SYNC_KEY = localStorage.getItem('cds_sync_key') || "";
+
+    const dailyEssentials = [
+        "BOOK READING",
+        "30 MIN CURRENT AFFAIRS REVISION",
+        "KHELGHAR QUIZ",
+        "NEWSPAPER",
+        "DRR",
+        "DIARY WRITING"
+    ];
+
     const scheduleData = [
         { date: "25 MAY", tasks: ["President + VP + Governor", "January smiling buddha Revision", "Tense", "Idioms & phrases", "Watch root words class"] },
         { date: "26 MAY", tasks: ["Parliament", "January smiling buddha Revision", "Tense", "S1-S6 practice"] },
@@ -240,6 +386,7 @@
         { date: "30 MAY", tasks: ["Tissue", "Feb smiling buddha Revision", "Noun practice", "New pattern parts of speech"] },
         { date: "31 MAY", isSunday: true, tasks: ["Polity Revision", "Backlogs", "Watch Jan CA class"] },
         { date: "1 JUNE", tasks: ["Life processes", "February smiling buddha Revision", "Watch Feb CA class"] },
+        
         { date: "2 JUNE", tasks: ["Life processes", "March smiling buddha Revision", "Homonyms Revision", "S1-S6 practice"] },
         { date: "3 JUNE", tasks: ["Revise all polity topics covered so far", "March smiling buddha Revision", "Watch 11 most Asked Homonyms"] },
         { date: "4 JUNE", tasks: ["State legislature + panchayat + municipalities", "April smiling buddha Revision", "Pronoun", "Practice new pattern POS", "Fill ups practice", "PQRS practice", "Watch march CA class"] },
@@ -248,6 +395,7 @@
         { date: "7 JUNE", isSunday: true, tasks: ["Revise all Biology Topic covered", "Cloze test practice"] },
         { date: "8 JUNE", tasks: ["Disease", "January smiling buddha Revision", "Verb"] },
         { date: "9 JUNE", tasks: ["Plants & Human hormones", "Jan smiling buddha Revision", "Idioms & phrases"] },
+        
         { date: "10 JUNE", tasks: ["Reproduction", "Jan smiling buddha Revision", "Verb practice", "Fill ups", "Homonyms Revision"] },
         { date: "11 JUNE", tasks: ["Revise polity topics covered so far", "Feb smiling buddha Revision"] },
         { date: "12 JUNE", tasks: ["Fundamental Rights", "Feb smiling buddha Revision", "Subject verb Agreement", "Idioms & phrases Revision"] },
@@ -255,18 +403,56 @@
         { date: "14 JUNE", isSunday: true, tasks: ["Revise Biology topics covered so far"] },
         { date: "15 JUNE", tasks: ["Diversity in living organisms", "Feb smiling buddha Revision", "Discourse marker", "Cloze test practice", "Watch BAD series class 3", "Error practice"] },
         { date: "16 JUNE", tasks: ["Control & coordination + formed elements + blood", "March smiling buddha Revision", "Question tag", "PQRS practice", "Idioms & phrases Revision"] },
-        { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May May CA class"] }
+        { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May CA class"] },
+        
+        { date: "18 JUNE", tasks: ["Making of the constitution", "March smiling buddha Revision", "New pattern POS practice", "S1-S6 practice"] },
+        { date: "19 JUNE", tasks: ["Emergency provisions + Amendments & the constitution", "April smiling buddha revision", "Homonyms Revision", "S1-S2 practice"] },
+        { date: "20 JUNE", tasks: ["Subordinates courts + HC + SC", "April smiling buddha revision", "S1-S6 + PQRS practice", "Fill ups practice", "Homonyms revision"] },
+        { date: "21 JUNE", isSunday: true, tasks: ["Complete pending tasks"] },
+        { date: "22 JUNE", tasks: ["Revise polity topics covered so far"] },
+        { date: "23 JUNE", tasks: ["Preamble", "April smiling buddha revision", "Grammar based error practice", "Solve previous year POS questions", "Idioms & phrases revision"] },
+        { date: "24 JUNE", tasks: ["Complete Biology Revision", "April smiling buddha revision", "Solve any previous year english question paper", "S1-S6 practice", "Solve previous year S1-S2 question", "Watch vocab class", "Idioms & phrases revision"] },
+        { date: "25 JUNE", tasks: ["Universe, Geology & Geological time scale", "Jan smiling buddha revision", "preposition", "cloze test"] },
+        
+        { date: "26 JUNE", tasks: ["latitude, longitude & interior of the earth", "Jan smiling buddha revision", "preposition", "phrasal verbs", "PQRS practice"] },
+        { date: "27 JUNE", tasks: ["Earthquake and Volcanoes", "Jan smiling buddha revision", "fixed preposition", "preposition based fill ups", "SI-S6 practice"] },
+        { date: "28 JUNE", isSunday: true, tasks: ["complete polity Revision"] },
+        { date: "29 JUNE", tasks: ["Geomorphic processes + rocks", "feb smiling buddha revision", "conjunction", "Idioms & phrases Revision", "cloze test", "watch vocab class"] },
+        { date: "30 JUNE", tasks: ["Acids, Base & salts", "feb smiling buddha revision", "conjunction practice", "phrasal verbs", "SI-S6 practice"] },
+        { date: "1 JULY", tasks: ["Metals & non-metals", "feb smiling buddha revision", "New pattern POS practice", "Homonyms Revision", "S1-S6 practice"] },
+        { date: "2 JULY", tasks: ["Carbon & its compounds", "march smiling buddha revision", "Discourse marker", "S1-S2 practice", "Homonyms Revision"] },
+        { date: "3 JULY", tasks: ["oceanic basin + ocean current", "march smiling buddha revision", "Grammar based error practice", "Idioms & phrases"] },
+        
+        { date: "4 JULY", tasks: ["coral reefs & tides", "march smiling buddha revision", "voice", "Narration", "S1-S2 practice"] },
+        { date: "5 JULY", tasks: ["Revise physical Geography covered so far", "solve any previous year english paper"] },
+        { date: "6 JULY", tasks: ["chemical Reaction & equation", "April smiling buddha revision", "voice practice", "Homonyms revision", "S1-S6 practice", "S1-S2 practice", "Idioms & Phrase Revision"] },
+        { date: "7 JULY", tasks: ["Atoms & molecules + revision chemistry topics covered so far", "April smiling buddha revision", "Tense Revision + practice", "fill ups", "PQRS"] },
+        { date: "8 JULY", tasks: ["Structure of Atoms", "April smiling buddha revision", "Discourse marker", "Idioms phrases Revision", "Homonyms Revision"] },
+        { date: "9 JULY", isSunday: true, tasks: ["state of matter", "may smiling buddha revision", "Narration practice"] },
+        { date: "10 JULY", tasks: ["earth, Atmosphere, heat Budget, layers of earth's", "may smiling buddha revision", "Articles + Determiner", "S1-S6 practice", "Idioms & Phrases Revision"] },
+        { date: "11 JULY", tasks: ["Winds pressure belt + cyclones + Anticyclone", "may smiling buddha revision", "Articles + Determiner practice new pattern pos", "cloze test"] },
+        
+        { date: "12 JULY", isSunday: true, tasks: ["inversion & temp + forms of condensation + clouds + precipitation", "english full mock test"] },
+        { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
     ];
 
-    const todayFormatted = "6 JUNE"; 
-    let detectedBlockId = "block-2"; 
-    let todaysTasksArray = ["Revise cell and tissue", "Solve any previous year english paper", "April smiling buddha Revision"];
-    let todaysDateStringSafe = "6_JUNE";
+    const months = ["JAN", "FEB", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUG", "SEPT", "OCT", "NOV", "DEC"];
+    const d = new Date();
+    const currentDayNum = d.getDate();
+    const currentMonthStr = months[d.getMonth()];
+    const todayFormatted = `${currentDayNum} ${currentMonthStr}`;
+
+    document.getElementById('todays-dashboard-title').innerHTML = `🎯 TODAY'S FOCUS TASKS (${todayFormatted})`;
+
+    let detectedBlockId = "block-1";
+    let todaysTasksArray = [];
+    let todaysDateStringSafe = "";
 
     const container = document.getElementById('pdf-layout-container');
     const selectMenu = document.getElementById('block-select');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    
     const itemsPerGroup = 8;
     const totalBlocks = Math.ceil(scheduleData.length / itemsPerGroup);
 
@@ -286,17 +472,36 @@
         pageBlock.className = 'pdf-page-block';
         pageBlock.id = `block-${groupIndex}`;
 
-        let pageHeaderHtml = `<div class="page-header"><div class="page-title">📅 STUDY SCHEDULE PLANNER</div><div class="pdf-tag">GROUP BLOCK ${groupIndex}</div></div>`;
-        let dailyWorkHtml = `<div class="page-daily-work"><h4>☑ DAILY WORK</h4><div class="ticker-table">`;
+        let pageHeaderHtml = `
+            <div class="page-header">
+                <div class="page-title">📅 STUDY SCHEDULE PLANNER</div>
+                <div class="pdf-tag">GROUP BLOCK ${groupIndex}</div>
+            </div>
+        `;
+
+        let dailyWorkHtml = `
+            <div class="page-daily-work">
+                <h4>☑ DAILY WORK (Continuous Tracking Columns)</h4>
+                <div class="ticker-table">
+        `;
 
         dailyEssentials.forEach((essential, essentialIdx) => {
-            dailyWorkHtml += `<div class="ticker-row"><div class="task-label">⚡ ${essential}</div><div class="checkbox-group">`;
+            dailyWorkHtml += `
+                <div class="ticker-row">
+                    <div class="task-label">⚡ ${essential}</div>
+                    <div class="checkbox-group">
+            `;
             for (let t = 0; t < 8; t++) {
                 const absoluteDay = startDayCount + t;
                 if(absoluteDay <= scheduleData.length) {
                     const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${absoluteDay}`;
                     const isChecked = localStorage.getItem(storageKey) === 'true';
-                    dailyWorkHtml += `<div class="ticker-cell"><span>D${absoluteDay}</span><input type="checkbox" class="sync-checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}></div>`;
+                    dailyWorkHtml += `
+                        <div class="ticker-cell">
+                            <span>D${absoluteDay}</span>
+                            <input type="checkbox" class="sync-checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        </div>
+                    `;
                 }
             }
             dailyWorkHtml += `</div></div>`;
@@ -307,75 +512,253 @@
         currentGroup.forEach((day, dayIndex) => {
             const absoluteDayNumber = startDayCount + dayIndex;
             const safeDateStr = day.date.replace(/\s+/g, '_');
-            const isToday = (day.date === todayFormatted);
+            const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
+            
+            if (isToday) {
+                detectedBlockId = `block-${groupIndex}`;
+                todaysTasksArray = day.tasks;
+                todaysDateStringSafe = safeDateStr;
+            }
+
             const isSundayClass = day.isSunday ? 'sunday' : '';
             const isTodayClass = isToday ? 'today-highlight' : '';
+            const sundayTagHtml = day.isSunday ? '<span class="sunday-tag">SUNDAY</span>' : '';
+            const todayBadgeHtml = isToday ? '<span class="today-badge">TODAY</span>' : '';
 
-            gridHtml += `<div class="day-box ${isSundayClass} ${isTodayClass}"><h5>[D${absoluteDayNumber}] ${day.date}</h5><ul class="task-list">`;
+            gridHtml += `
+                <div class="day-box ${isSundayClass} ${isTodayClass}">
+                    <h5>[D${absoluteDayNumber}] ${day.date} ${sundayTagHtml} ${todayBadgeHtml}</h5>
+                    <ul class="task-list">
+            `;
+
             day.tasks.forEach((task, taskIdx) => {
                 const storageKey = `task_${safeDateStr}_${taskIdx}`;
                 const isChecked = localStorage.getItem(storageKey) === 'true';
-                gridHtml += `<li class="task-item ${isChecked ? 'completed' : ''}" id="main-item-${safeDateStr}-${taskIdx}"><input type="checkbox" class="sync-checkbox" data-main-id="${safeDateStr}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}><span class="task-text">${task}</span></li>`;
+                gridHtml += `
+                    <li class="task-item ${isChecked ? 'completed' : ''}" id="main-item-${safeDateStr}-${taskIdx}">
+                        <input type="checkbox" class="sync-checkbox" data-main-id="${safeDateStr}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        <span class="task-text">${task}</span>
+                    </li>
+                `;
             });
             gridHtml += `</ul></div>`;
         });
         gridHtml += `</div>`;
+
         pageBlock.innerHTML = pageHeaderHtml + dailyWorkHtml + gridHtml;
         container.appendChild(pageBlock);
     }
 
     const dashboardContainer = document.getElementById('todays-task-container');
-    todaysTasksArray.forEach((task, taskIdx) => {
-        const storageKey = `task_${todaysDateStringSafe}_${taskIdx}`;
-        const isChecked = localStorage.getItem(storageKey) === 'true';
-        dashboardContainer.innerHTML += `<li class="todays-task-item ${isChecked ? 'completed' : ''}" id="dash-item-${todaysDateStringSafe}-${taskIdx}"><input type="checkbox" class="sync-checkbox" data-dash-id="${todaysDateStringSafe}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}><span class="task-text">${task}</span></li>`;
-    });
+    if (todaysTasksArray.length > 0) {
+        todaysTasksArray.forEach((task, taskIdx) => {
+            const storageKey = `task_${todaysDateStringSafe}_${taskIdx}`;
+            const isChecked = localStorage.getItem(storageKey) === 'true';
+            
+            dashboardContainer.innerHTML += `
+                <li class="todays-task-item ${isChecked ? 'completed' : ''}" id="dash-item-${todaysDateStringSafe}-${taskIdx}">
+                    <input type="checkbox" class="sync-checkbox" data-dash-id="${todaysDateStringSafe}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                    <span class="task-text">${task}</span>
+                </li>
+            `;
+        });
+    } else {
+        dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No specific tasks scheduled for today. Backlogs clear karo ya chill karo!</p>`;
+    }
 
     function showBlock(blockId) {
-        document.querySelectorAll('.pdf-page-block').forEach(b => b.style.display = 'none');
-        document.getElementById(blockId).style.display = 'block';
+        document.querySelectorAll('.pdf-page-block').forEach(block => {
+            block.style.display = 'none';
+        });
+        const selectedBlock = document.getElementById(blockId);
+        if(selectedBlock) {
+            selectedBlock.style.display = 'block';
+        }
         selectMenu.value = blockId;
+        
+        const currentNum = parseInt(blockId.split('-')[1]);
+        prevBtn.disabled = (currentNum === 1);
+        nextBtn.disabled = (currentNum === totalBlocks);
     }
-    selectMenu.addEventListener('change', function() { showBlock(this.value); });
+
+    selectMenu.addEventListener('change', function() {
+        showBlock(this.value);
+    });
+
+    prevBtn.addEventListener('click', () => {
+        const currentBlock = selectMenu.value;
+        const currentNum = parseInt(currentBlock.split('-')[1]);
+        if (currentNum > 1) {
+            showBlock(`block-${currentNum - 1}`);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        const currentBlock = selectMenu.value;
+        const currentNum = parseInt(currentBlock.split('-')[1]);
+        if (currentNum < totalBlocks) {
+            showBlock(`block-${currentNum + 1}`);
+        }
+    });
+
+    // 📡 INSTANT KV-CLOUD SYNC LOGIC
+    const statusText = document.getElementById('cloud-status-text');
+    const setupBtn = document.getElementById('cloud-setup-btn');
+
+    function updateStatusUI() {
+        if(SYNC_KEY) {
+            statusText.innerHTML = `🟢 Live Sync Connected (ID: ${SYNC_KEY})`;
+            setupBtn.innerText = "Disconnect / Change Sync ID";
+        } else {
+            statusText.innerHTML = `⚠️ Cloud Sync: Local Only (Offline)`;
+            setupBtn.innerText = "Setup Automatic Sync (Instant)";
+        }
+    }
+
+    function getLocalDataPackage() {
+        const syncData = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('task_') || key.startsWith('daily_')) {
+                syncData[key] = localStorage.getItem(key);
+            }
+        }
+        return syncData;
+    }
+
+    let debounceTimer;
+    function autoSaveToCloud() {
+        if (!SYNC_KEY) return;
+        statusText.innerHTML = `⏳ Syncing changes...`;
+        
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const payload = encodeURIComponent(JSON.stringify(getLocalDataPackage()));
+            fetch(`https://kvbin.org/api/v1/store/${SYNC_KEY}?data=${payload}`, { method: 'POST' })
+            .then(res => {
+                if(res.ok) statusText.innerHTML = `🟢 Live Sync Connected (Saved)`;
+                else throw new Error();
+            })
+            .catch(() => { statusText.innerHTML = `🔴 Sync Failed (Check Net)`; });
+        }, 800);
+    }
+
+    function loadFromCloudOnStart() {
+        if (!SYNC_KEY) return;
+        statusText.innerHTML = `⏳ Loading fresh ticks...`;
+        
+        fetch(`https://kvbin.org/api/v1/get/${SYNC_KEY}`)
+        .then(res => res.json())
+        .then(resData => {
+            if (resData && resData.data) {
+                const data = JSON.parse(decodeURIComponent(resData.data));
+                if (data && Object.keys(data).length > 0) {
+                    Object.keys(data).forEach(key => {
+                        localStorage.setItem(key, data[key]);
+                    });
+                    statusText.innerHTML = `🟢 Live Sync Connected`;
+                    if(!sessionStorage.getItem('kv_synced')) {
+                        sessionStorage.setItem('kv_synced', 'true');
+                        window.location.reload();
+                    }
+                }
+            } else {
+                statusText.innerHTML = `🟢 Connected (Cloud Empty)`;
+            }
+        })
+        .catch(() => { statusText.innerHTML = `🟢 Connected (Using cache)`; });
+    }
+
+    setupBtn.addEventListener('click', () => {
+        if (SYNC_KEY) {
+            let choice = confirm("Aap already synced ho! Kya disconnect/change karna chahte ho?");
+            if(!choice) return;
+        }
+
+        let inputID = prompt("Apni unique Sync ID daalein (Koi bhi simple secret word/number bina space ke, jaise: rahul789):");
+        if(!inputID) {
+            if(!SYNC_KEY) return;
+            localStorage.removeItem('cds_sync_key');
+            SYNC_KEY = "";
+            updateStatusUI();
+            return;
+        }
+
+        inputID = inputID.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        localStorage.setItem('cds_sync_key', inputID);
+        SYNC_KEY = inputID;
+        
+        statusText.innerHTML = `⏳ Activating...`;
+        
+        // Instant save current data to this channel
+        const payload = encodeURIComponent(JSON.stringify(getLocalDataPackage()));
+        fetch(`https://kvbin.org/api/v1/store/${SYNC_KEY}?data=${payload}`, { method: 'POST' })
+        .then(() => {
+            alert(`🚀 Connected Instantly! Ab phone par bhi yahi same ID daal dena. Dono sync ho jayenge.`);
+            sessionStorage.removeItem('kv_synced');
+            window.location.reload();
+        });
+    });
 
     document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const key = this.getAttribute('data-key');
-            if(key) localStorage.setItem(key, this.checked);
-            const item = this.parentElement;
-            if(this.checked) item.classList.add('completed'); else item.classList.remove('completed');
+            const isChecked = this.checked;
+            
+            if(key) localStorage.setItem(key, isChecked);
+
+            const dashId = this.getAttribute('data-dash-id');
+            if (dashId) {
+                const mainCheckbox = document.querySelector(`[data-main-id="${dashId}"]`);
+                if (mainCheckbox) mainCheckbox.checked = isChecked;
+                
+                const itemDash = document.getElementById(`dash-item-${dashId}`);
+                const itemMain = document.getElementById(`main-item-${dashId}`);
+                if(isChecked) {
+                    if(itemDash) itemDash.classList.add('completed');
+                    if(itemMain) itemMain.classList.add('completed');
+                } else {
+                    if(itemDash) itemDash.classList.remove('completed');
+                    if(itemMain) itemMain.classList.remove('completed');
+                }
+            }
+
+            const mainId = this.getAttribute('data-main-id');
+            if (mainId) {
+                const dashCheckbox = document.querySelector(`[data-dash-id="${mainId}"]`);
+                if (dashCheckbox) dashCheckbox.checked = isChecked;
+                
+                const itemDash = document.getElementById(`dash-item-${mainId}`);
+                const itemMain = document.getElementById(`main-item-${mainId}`);
+                if(isChecked) {
+                    if(itemDash) itemDash.classList.add('completed');
+                    if(itemMain) itemMain.classList.add('completed');
+                } else {
+                    if(itemDash) itemDash.classList.remove('completed');
+                    if(itemMain) itemMain.classList.remove('completed');
+                }
+            }
+            
+            if(!dashId && !mainId) {
+                const listItem = this.parentElement;
+                if (listItem.classList.contains('task-item')) {
+                    if (isChecked) listItem.classList.add('completed');
+                    else listItem.classList.remove('completed');
+                }
+            }
+
+            autoSaveToCloud();
         });
     });
 
-    // 📤 EXPORT CODE LOGIC
-    document.getElementById('export-btn').addEventListener('click', () => {
-        const data = {};
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith('task_') || key.startsWith('daily_')) {
-                data[key] = localStorage.getItem(key);
-            }
-        }
-        const token = btoa(JSON.stringify(data));
-        navigator.clipboard.writeText(token);
-        alert("🚀 Sync Code Copy Ho Gaya Hai! Ise WhatsApp par khudko bhejo aur phone par paste kar lo.");
-    });
-
-    // 📥 IMPORT CODE LOGIC
-    document.getElementById('import-btn').addEventListener('click', () => {
-        const code = prompt("WhatsApp se copy kiya hua Sync Code yahan paste karein:");
-        if (!code) return;
-        try {
-            const data = JSON.parse(atob(code.trim()));
-            Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
-            alert("🎯 Data Loaded Successfully! Page refresh ho raha hai...");
-            window.location.reload();
-        } catch(e) {
-            alert("❌ Invalid Code! Kripya sahi se copy karein.");
+    window.addEventListener('DOMContentLoaded', () => {
+        showBlock(detectedBlockId);
+        updateStatusUI();
+        if(SYNC_KEY) {
+            loadFromCloudOnStart();
         }
     });
-
-    window.addEventListener('DOMContentLoaded', () => { showBlock(detectedBlockId); });
 </script>
+
 </body>
 </html>
