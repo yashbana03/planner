@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDS Journey Planner - Hybrid Cloud/Offline Edition</title>
+    <title>CDS Journey Planner - Gamified Hybrid Edition</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -38,6 +38,109 @@
         header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.5px; }
         header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
         
+        /* 📝 STICKY NOTES & BACKLOG CORNER */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .workspace-card {
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .workspace-card.backlog-border {
+            border-color: #dc2626;
+        }
+        .workspace-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .workspace-card.backlog-border .workspace-title {
+            color: #dc2626;
+        }
+        .sticky-textarea {
+            width: 100%;
+            height: 110px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: none;
+            box-sizing: border-box;
+            background: #fffdeb;
+            color: #374151;
+        }
+        .sticky-textarea:focus {
+            outline: 2px solid var(--accent);
+            border-color: transparent;
+        }
+        .backlog-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .backlog-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .backlog-input:focus {
+            outline: 2px solid #dc2626;
+        }
+        .backlog-add-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .backlog-add-btn:hover { background: #b91c1c; }
+        .backlog-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 110px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .backlog-item {
+            background: #fef2f2;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #dc2626;
+        }
+        .backlog-del-btn {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .backlog-del-btn:hover { color: #dc2626; }
+
         /* ☁️ HYBRID MODE STATUS BAR */
         .cloud-status-bar {
             background: #ffffff;
@@ -232,6 +335,38 @@
         }
         .no-tasks-msg { color: #065f46; font-weight: 600; font-style: italic; }
 
+        /* 📊 PROGRESS BAR INTEGRATION VISUALS */
+        .block-progress-wrapper {
+            background: #f3f4f6;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        .progress-outer-bar {
+            width: 100%;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .progress-inner-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+
         .pdf-page-block {
             background: var(--card-bg);
             border: 2px solid var(--border);
@@ -301,6 +436,22 @@
         <p>Smart Auto-Focus Dashboard Grid</p>
     </header>
 
+    <!-- 📝 QUICK REVISION STICKY NOTES & BACKLOG CORNER -->
+    <div class="workspace-grid">
+        <div class="workspace-card">
+            <span class="workspace-title">📝 Quick Revision Sticky Notes</span>
+            <textarea id="sticky-notes-area" class="sticky-textarea" placeholder="Pure din ka koi bhi important formula, dynamic key-fact, ya criteria yahan short mein note karein... (Auto saves)"></textarea>
+        </div>
+        <div class="workspace-card backlog-border">
+            <span class="workspace-title">⚠️ Backlog Corner</span>
+            <div class="backlog-input-group">
+                <input type="text" id="backlog-item-input" class="backlog-input" placeholder="Jo task chhut gaya yahan add karein...">
+                <button class="backlog-add-btn" onclick="addBacklogItem()">Add</button>
+            </div>
+            <ul id="backlog-list-container" class="backlog-list"></ul>
+        </div>
+    </div>
+
     <div class="cloud-status-bar">
         <div class="status-info">
             <span id="sync-dot" class="status-dot"></span>
@@ -332,7 +483,7 @@
 </div>
 
 <script>
-    let APP_MODE = localStorage.getItem('planner_app_mode') || ''; // 'cloud' or 'offline'
+    let APP_MODE = localStorage.getItem('planner_app_mode') || ''; 
     let SCRIPT_URL = localStorage.getItem('google_sheet_sync_url') || '';
 
     function initModeSystem() {
@@ -377,14 +528,79 @@
             document.getElementById('sync-dot').className = "status-dot offline-dot";
             document.getElementById('sync-status-text').innerText = "📱 Offline Mode Active (Saving on this device)";
             document.getElementById('reset-link-btn').style.display = 'none';
+            loadWorkspaceDataLocally();
         } else {
             document.getElementById('reset-link-btn').style.display = 'inline-block';
             if (!SCRIPT_URL) {
                 document.getElementById('sync-status-text').innerText = "🔴 Cloud URL Required. Click Update Link.";
+                loadWorkspaceDataLocally();
             } else {
                 loadFromCloud();
             }
         }
+    }
+
+    // 📝 WORKSPACE (STICKY NOTES & BACKLOG) FUNCTIONALITY
+    const stickyTextArea = document.getElementById('sticky-notes-area');
+    
+    stickyTextArea.addEventListener('input', function() {
+        const textValue = this.value;
+        localStorage.setItem('workspace_sticky_notes', textValue);
+        if(APP_MODE === 'cloud' && SCRIPT_URL) {
+            saveToCloud('workspace_sticky_notes', textValue);
+        }
+    });
+
+    function loadWorkspaceDataLocally() {
+        stickyTextArea.value = localStorage.getItem('workspace_sticky_notes') || '';
+        renderBacklogList();
+    }
+
+    function getBacklogArray() {
+        const raw = localStorage.getItem('workspace_backlog_list');
+        return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveBacklogArray(arr) {
+        localStorage.setItem('workspace_backlog_list', JSON.stringify(arr));
+        if(APP_MODE === 'cloud' && SCRIPT_URL) {
+            saveToCloud('workspace_backlog_list', JSON.stringify(arr));
+        }
+    }
+
+    function addBacklogItem() {
+        const input = document.getElementById('backlog-item-input');
+        const val = input.value.trim();
+        if(!val) return;
+        
+        let arr = getBacklogArray();
+        arr.push(val);
+        saveBacklogArray(arr);
+        
+        input.value = '';
+        renderBacklogList();
+    }
+
+    function deleteBacklogItem(index) {
+        let arr = getBacklogArray();
+        arr.splice(index, 1);
+        saveBacklogArray(arr);
+        renderBacklogList();
+    }
+
+    function renderBacklogList() {
+        const container = document.getElementById('backlog-list-container');
+        container.innerHTML = '';
+        const arr = getBacklogArray();
+        
+        arr.forEach((item, index) => {
+            container.innerHTML += `
+                <li class="backlog-item">
+                    <span>⚠️ ${item}</span>
+                    <button class="backlog-del-btn" onclick="deleteBacklogItem(${index})">✕</button>
+                </li>
+            `;
+        });
     }
 
     const dailyEssentials = [
@@ -490,6 +706,15 @@
                 <div class="page-title">📅 STUDY SCHEDULE PLANNER</div>
                 <div class="pdf-tag">GROUP BLOCK ${groupIndex}</div>
             </div>
+            <div class="block-progress-wrapper">
+                <div class="progress-meta">
+                    <span>🏆 Block Target Completion</span>
+                    <span id="progress-percent-block-${groupIndex}">0%</span>
+                </div>
+                <div class="progress-outer-bar">
+                    <div class="progress-inner-fill" id="progress-fill-block-${groupIndex}"></div>
+                </div>
+            </div>
         `;
 
         let dailyWorkHtml = `
@@ -512,7 +737,7 @@
                     dailyWorkHtml += `
                         <div class="ticker-cell">
                             <span>D${absoluteDay}</span>
-                            <input type="checkbox" class="sync-checkbox" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                            <input type="checkbox" class="sync-checkbox" data-block="block-${groupIndex}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
                         </div>
                     `;
                 }
@@ -549,7 +774,7 @@
                 const isChecked = localStorage.getItem(storageKey) === 'true';
                 gridHtml += `
                     <li class="task-item ${isChecked ? 'completed' : ''}" id="main-item-${safeDateStr}-${taskIdx}">
-                        <input type="checkbox" class="sync-checkbox" data-main-id="${safeDateStr}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" class="sync-checkbox" data-block="block-${groupIndex}" data-main-id="${safeDateStr}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
                         <span class="task-text">${task}</span>
                     </li>
                 `;
@@ -570,13 +795,40 @@
             
             dashboardContainer.innerHTML += `
                 <li class="todays-task-item ${isChecked ? 'completed' : ''}" id="dash-item-${todaysDateStringSafe}-${taskIdx}">
-                    <input type="checkbox" class="sync-checkbox" data-dash-id="${todaysDateStringSafe}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                    <input type="checkbox" class="sync-checkbox" data-block="${detectedBlockId}" data-dash-id="${todaysDateStringSafe}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
                     <span class="task-text">${task}</span>
                 </li>
             `;
         });
     } else {
         dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No tasks scheduled for today.</p>`;
+    }
+
+    function updateBlockProgressBar(blockId) {
+        const blockElement = document.getElementById(blockId);
+        if (!blockElement) return;
+
+        const allBlockCheckboxes = blockElement.querySelectorAll('.sync-checkbox');
+        let totalCount = allBlockCheckboxes.length;
+        let checkedCount = 0;
+
+        allBlockCheckboxes.forEach(cb => {
+            if (cb.checked) checkedCount++;
+        });
+
+        const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+        
+        const textElement = document.getElementById(`progress-percent-${blockId}`);
+        const fillElement = document.getElementById(`progress-fill-${blockId}`);
+        
+        if (textElement) textElement.innerText = `${percentage}%`;
+        if (fillElement) fillElement.style.width = `${percentage}%`;
+    }
+
+    function calculateAllBlockProgressBars() {
+        for (let b = 1; b <= totalBlocks; b++) {
+            updateBlockProgressBar(`block-${b}`);
+        }
     }
 
     function showBlock(blockId) {
@@ -588,6 +840,8 @@
         const currentNum = parseInt(blockId.split('-')[1]);
         prevBtn.disabled = (currentNum === 1);
         nextBtn.disabled = (currentNum === totalBlocks);
+        
+        updateBlockProgressBar(blockId);
     }
 
     selectMenu.addEventListener('change', function() { showBlock(this.value); });
@@ -612,6 +866,17 @@
             
             Object.keys(cloudData).forEach(key => {
                 localStorage.setItem(key, cloudData[key]);
+                
+                // Specific Check for workspace keys
+                if(key === 'workspace_sticky_notes') {
+                    stickyTextArea.value = cloudData[key];
+                    return;
+                }
+                if(key === 'workspace_backlog_list') {
+                    renderBacklogList();
+                    return;
+                }
+
                 const isChecked = (cloudData[key] === 'true' || cloudData[key] === true);
                 
                 document.querySelectorAll(`[data-key="${key}"]`).forEach(checkbox => {
@@ -625,9 +890,12 @@
             });
             document.getElementById('sync-dot').className = "status-dot active";
             document.getElementById('sync-status-text').innerText = "🟢 Live Sync Connected!";
+            calculateAllBlockProgressBars();
+            renderBacklogList(); // refresh backlogs from sync
         } catch (e) {
             document.getElementById('sync-status-text').innerText = "🟡 Connection Failed (Using local storage)";
             console.log("Sync Error: ", e);
+            loadWorkspaceDataLocally();
         }
     }
 
@@ -665,6 +933,7 @@
         checkbox.addEventListener('change', function() {
             const key = this.getAttribute('data-key');
             const isChecked = this.checked;
+            const targetBlockId = this.getAttribute('data-block');
             
             if(key) {
                 localStorage.setItem(key, isChecked);
@@ -694,12 +963,22 @@
                     else listItem.classList.remove('completed');
                 }
             }
+
+            if(targetBlockId) {
+                updateBlockProgressBar(targetBlockId);
+            } else if (detectedBlockId) {
+                updateBlockProgressBar(detectedBlockId);
+            }
         });
     });
 
     window.addEventListener('DOMContentLoaded', () => {
         initModeSystem();
         showBlock(detectedBlockId);
+        calculateAllBlockProgressBars();
+        if(APP_MODE === 'offline' || !SCRIPT_URL) {
+            loadWorkspaceDataLocally();
+        }
     });
 </script>
 
