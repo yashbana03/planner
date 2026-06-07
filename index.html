@@ -23,7 +23,7 @@
             padding: 20px;
         }
         
-        /* 🌟 NEW THREE-COLUMN ULTRAPRIME LAYOUT 🌟 */
+        /* 🌟 THREE-COLUMN ULTRAPRIME LAYOUT 🌟 */
         .main-wrapper {
             display: grid;
             grid-template-columns: 280px 1fr 300px;
@@ -33,7 +33,6 @@
             align-items: start;
         }
 
-        /* Responsive adjustments for smaller screens */
         @media (max-width: 1200px) {
             .main-wrapper {
                 grid-template-columns: 1fr;
@@ -426,10 +425,9 @@
     </div>
 </div>
 
-<!-- 📊 NEW THREE-COLUMN BALANCED DASHBOARD WRAPPER -->
 <div class="main-wrapper">
     
-    <!-- 👈 LEFT SIDEBAR: Today's Focus Box Positioned Perfectly Here -->
+    <!-- 👈 LEFT SIDEBAR -->
     <div class="left-sidebar">
         <header>
             <h1>CDS PLANNER</h1>
@@ -445,7 +443,7 @@
         </div>
     </div>
 
-    <!-- 🏛️ CENTER CONTENT: Primary Control Bars and Block Schedule Planner -->
+    <!-- 🏛️ CENTER CONTENT -->
     <div class="center-content">
         <div class="cloud-status-bar">
             <div class="status-info">
@@ -472,7 +470,7 @@
         <div id="pdf-layout-container"></div>
     </div>
 
-    <!-- 👉 RIGHT SIDEBAR: Isolated Unticked Automatic Backlog Corner -->
+    <!-- 👉 RIGHT SIDEBAR -->
     <div class="right-sidebar">
         <div class="workspace-card backlog-border">
             <span class="workspace-title">⚠️ Auto-Backlog Corner</span>
@@ -541,7 +539,6 @@
         }
     }
 
-    // 📝 WORKSPACE STICKY NOTE STORAGE
     const stickyTextArea = document.getElementById('sticky-notes-area');
     stickyTextArea.addEventListener('input', function() {
         const textValue = this.value;
@@ -572,35 +569,35 @@
         { date: "28 MAY", tasks: ["PM + CM + President", "Previous year error practice", "Parts of speech practice", "PQRS practice", "Idioms & phrases"] },
         { date: "29 MAY", tasks: ["Cell", "Feb smiling buddha Revision", "Noun", "S1-S2 practice", "Watch BAD class 2"] },
         { date: "30 MAY", tasks: ["Tissue", "Feb smiling buddha Revision", "Noun practice", "New pattern parts of speech"] },
-        { date: "31 MAY", isSunday: true, tasks: ["Polity Revision", "Backlogs", "Watch Jan CA class"] },
+        { date: "31 MAY", tasks: ["Polity Revision", "Backlogs", "Watch Jan CA class"] },
         { date: "1 JUNE", tasks: ["Life processes", "February smiling buddha Revision", "Watch Feb CA class"] },
         { date: "2 JUNE", tasks: ["Life processes", "March smiling buddha Revision", "Homonyms Revision", "S1-S6 practice"] },
         { date: "3 JUNE", tasks: ["Revise all polity topics covered so far", "March smiling buddha Revision", "Watch 11 most Asked Homonyms"] },
         { date: "4 JUNE", tasks: ["State legislature + panchayat + municipalities", "April smiling buddha Revision", "Pronoun", "Practice new pattern POS", "Fill ups practice", "PQRS practice", "Watch march CA class"] },
         { date: "5 JUNE", tasks: ["Constitutional & non-constitutional bodies", "April smiling buddha Revision", "Verb", "Pronoun practice", "Homonyms Revision", "Watch vocab class", "S1-S2 practice"] },
         { date: "6 JUNE", tasks: ["Revise cell and tissue", "Solve any previous year english paper", "April smiling buddha Revision"] },
-        { date: "7 JUNE", isSunday: true, tasks: ["Revise all Biology Topic covered", "Cloze test practice"] },
+        { date: "7 JUNE", tasks: ["Revise all Biology Topic covered", "Cloze test practice"] },
         { date: "8 JUNE", tasks: ["Disease", "January smiling buddha Revision", "Verb"] },
         { date: "9 JUNE", tasks: ["Plants & Human hormones", "Jan smiling buddha Revision", "Idioms & phrases"] },
         { date: "10 JUNE", tasks: ["Reproduction", "Jan smiling buddha Revision", "Verb practice", "Fill ups", "Homonyms Revision"] },
         { date: "11 JUNE", tasks: ["Revise polity topics covered so far", "Feb smiling buddha Revision"] },
         { date: "12 JUNE", tasks: ["Fundamental Rights", "Feb smiling buddha Revision", "Subject verb Agreement", "Idioms & phrases Revision"] },
         { date: "13 JUNE", tasks: ["DRSP + FDs", "Feb smiling buddha Revision", "Solve any previous year english question paper"] },
-        { date: "14 JUNE", isSunday: true, tasks: ["Revise Biology topics covered so far"] },
+        { date: "14 JUNE", tasks: ["Revise Biology topics covered so far"] },
         { date: "15 JUNE", tasks: ["Diversity in living organisms", "Feb smiling buddha Revision", "Discourse marker", "Cloze test practice", "Watch BAD series class 3", "Error practice"] },
         { date: "16 JUNE", tasks: ["Control & coordination + formed elements + blood", "March smiling buddha Revision", "Question tag", "PQRS practice", "Idioms & phrases Revision"] },
         { date: "17 JUNE", tasks: ["Heredity & evolution", "March smiling buddha Revision", "Question tag practice", "Discourse marker", "Watch May CA class"] },
         { date: "18 JUNE", tasks: ["Making of the constitution", "March smiling buddha Revision", "New pattern POS practice", "S1-S6 practice"] },
         { date: "19 JUNE", tasks: ["Emergency provisions + Amendments & the constitution", "April smiling buddha revision", "Homonyms Revision", "S1-S2 practice"] },
         { date: "20 JUNE", tasks: ["Subordinates courts + HC + SC", "April smiling buddha revision", "S1-S6 + PQRS practice", "Fill ups practice", "Homonyms revision"] },
-        { date: "21 JUNE", isSunday: true, tasks: ["Complete pending tasks"] },
+        { date: "21 JUNE", tasks: ["Complete pending tasks"] },
         { date: "22 JUNE", tasks: ["Revise polity topics covered so far"] },
         { date: "23 JUNE", tasks: ["Preamble", "April smiling buddha revision", "Grammar based error practice", "Solve previous year POS questions", "Idioms & phrases revision"] },
         { date: "24 JUNE", tasks: ["Complete Biology Revision", "April smiling buddha revision", "Solve any previous year english question paper", "S1-S6 practice", "Solve previous year S1-S2 question", "Watch vocab class", "Idioms & phrases revision"] },
         { date: "25 JUNE", tasks: ["Universe, Geology & Geological time scale", "Jan smiling buddha revision", "preposition", "cloze test"] },
         { date: "26 JUNE", tasks: ["latitude, longitude & interior of the earth", "Jan smiling buddha revision", "preposition", "phrasal verbs", "PQRS practice"] },
         { date: "27 JUNE", tasks: ["Earthquake and Volcanoes", "Jan smiling buddha revision", "fixed preposition", "preposition based fill ups", "SI-S6 practice"] },
-        { date: "28 JUNE", isSunday: true, tasks: ["complete polity Revision"] },
+        { date: "28 JUNE", tasks: ["complete polity Revision"] },
         { date: "29 JUNE", tasks: ["Geomorphic processes + rocks", "feb smiling buddha revision", "conjunction", "Idioms & phrases Revision", "cloze test", "watch vocab class"] },
         { date: "30 JUNE", tasks: ["Acids, Base & salts", "feb smiling buddha revision", "conjunction practice", "phrasal verbs", "SI-S6 practice"] },
         { date: "1 JULY", tasks: ["Metals & non-metals", "feb smiling buddha revision", "New pattern POS practice", "Homonyms Revision", "S1-S6 practice"] },
@@ -611,12 +608,33 @@
         { date: "6 JULY", tasks: ["chemical Reaction & equation", "April smiling buddha revision", "voice practice", "Homonyms revision", "S1-S6 practice", "S1-S2 practice", "Idioms & Phrase Revision"] },
         { date: "7 JULY", tasks: ["Atoms & molecules + revision chemistry topics covered so far", "April smiling buddha revision", "Tense Revision + practice", "fill ups", "PQRS"] },
         { date: "8 JULY", tasks: ["Structure of Atoms", "April smiling buddha revision", "Discourse marker", "Idioms phrases Revision", "Homonyms Revision"] },
-        { date: "9 JULY", isSunday: true, tasks: ["state of matter", "may smiling buddha revision", "Narration practice"] },
+        { date: "9 JULY", tasks: ["state of matter", "may smiling buddha revision", "Narration practice"] },
         { date: "10 JULY", tasks: ["earth, Atmosphere, heat Budget, layers of earth's", "may smiling buddha revision", "Articles + Determiner", "S1-S6 practice", "Idioms & Phrases Revision"] },
         { date: "11 JULY", tasks: ["Winds pressure belt + cyclones + Anticyclone", "may smiling buddha revision", "Articles + Determiner practice new pattern pos", "cloze test"] },
-        { date: "12 JULY", isSunday: true, tasks: ["inversion & temp + forms of condensation + clouds + precipitation", "english full mock test"] },
+        { date: "12 JULY", tasks: ["inversion & temp + forms of condensation + clouds + precipitation", "english full mock test"] },
         { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
     ];
+
+    // 🧠 SMART REAL-TIME CALENDAR CALCULATION MODULE (2026 BASED)
+    function checkIfSundayRealCalendar(dateStr) {
+        const monthsMap = { "MAY": 4, "JUNE": 5, "JULY": 6 }; // 0-indexed months
+        const parts = dateStr.trim().toUpperCase().split(" ");
+        if (parts.length < 2) return false;
+        
+        const dayNum = parseInt(parts[0]);
+        const monthIndex = monthsMap[parts[1]];
+        
+        if (isNaN(dayNum) || monthIndex === undefined) return false;
+        
+        // Year sets to 2026 based on calendar timeline
+        const targetDate = new Date(2026, monthIndex, dayNum);
+        return targetDate.getDay() === 0; // 0 means Sunday in JS Engine
+    }
+
+    // Assign dynamically detected Sunday properties
+    scheduleData.forEach(day => {
+        day.isSunday = checkIfSundayRealCalendar(day.date);
+    });
 
     const months = ["JAN", "FEB", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUG", "SEPT", "OCT", "NOV", "DEC"];
     const d = new Date();
@@ -631,7 +649,6 @@
     let todaysDateStringSafe = "";
     let todayIndexInSchedule = -1;
 
-    // Track matching target index for automated backlog functionality
     scheduleData.forEach((day, index) => {
         if(day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase()) {
             todayIndexInSchedule = index;
@@ -773,12 +790,10 @@
         dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No tasks scheduled for today.</p>`;
     }
 
-    // 📊 PROGRESS CALCULATION MODIFIED (Excludes Daily Routine Columns)
     function updateBlockProgressBar(blockId) {
         const blockElement = document.getElementById(blockId);
         if (!blockElement) return;
 
-        // ONLY count checkpoints that belong to actual specific date tasks (.date-task-cb)
         const allDateCheckboxes = blockElement.querySelectorAll('.sync-checkbox.date-task-cb');
         let totalCount = allDateCheckboxes.length;
         let checkedCount = 0;
@@ -802,7 +817,6 @@
         }
     }
 
-    // ⚠️ AUTOMATED UNTICKED PAST TASKS SCANNER FOR BACKLOG BOX
     function autoScanAndRenderBacklogs() {
         const backlogContainer = document.getElementById('backlog-list-container');
         backlogContainer.innerHTML = '';
@@ -859,7 +873,6 @@
         if (currentNum < totalBlocks) { showBlock(`block-${currentNum + 1}`); }
     });
 
-    // 📡 CLOUD DOWNLOAD SYNC
     async function loadFromCloud() {
         if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
         document.getElementById('sync-status-text').innerText = "Real-time updates fetch ho rha hai...";
@@ -914,7 +927,6 @@
         }
     }
 
-    // 📡 CLOUD UPLOAD SYNC
     async function saveToCloud(key, value) {
         if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
         try {
@@ -968,7 +980,6 @@
                 updateBlockProgressBar(detectedBlockId);
             }
 
-            // Realtime update automatic backlog lists if a past item changes status
             autoScanAndRenderBacklogs();
         });
     });
