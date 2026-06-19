@@ -369,6 +369,7 @@
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
         }
         .page-header {
             display: flex;
@@ -390,7 +391,7 @@
         
         .task-label { flex: 2; font-weight: 600; font-size: 0.85rem; color: #1f2937; }
         .checkbox-group { flex: 3; display: flex; justify-content: space-between; max-width: 500px; }
-        .ticker-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .ticker-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 35px; }
         .ticker-cell span { font-size: 0.65rem; color: #b45309; font-weight: bold; }
         .ticker-cell .no-task-cross { font-size: 0.85rem; color: #9ca3af; font-weight: bold; height: 16px; line-height: 16px; }
         .ticker-cell input[type="checkbox"] { width: 16px; height: 16px; accent-color: #b45309; cursor: pointer; }
@@ -427,7 +428,6 @@
 
 <div class="main-wrapper">
     
-    <!-- 👈 LEFT SIDEBAR -->
     <div class="left-sidebar">
         <header>
             <h1>CDS PLANNER</h1>
@@ -443,7 +443,6 @@
         </div>
     </div>
 
-    <!-- 🏛️ CENTER CONTENT -->
     <div class="center-content">
         <div class="cloud-status-bar">
             <div class="status-info">
@@ -470,7 +469,6 @@
         <div id="pdf-layout-container"></div>
     </div>
 
-    <!-- 👉 RIGHT SIDEBAR -->
     <div class="right-sidebar">
         <div class="workspace-card backlog-border">
             <span class="workspace-title">⚠️ Auto-Backlog Corner</span>
@@ -506,7 +504,7 @@
     }
 
     function askForNewLink() {
-        let url = prompt("https://script.google.com/macros/s/AKfycbzFsThJMnPB8MDSETp4TU9pYToBGQYzz-WdDIqjgfP3bzHINkqVMq_EyjGMTQk2-DLHSw/exec");
+        let url = prompt("Paste your Google Apps Script Web App URL here:");
         if (url) {
             localStorage.setItem('google_sheet_sync_url', url.trim());
             SCRIPT_URL = url.trim();
@@ -626,14 +624,24 @@
         
         if (isNaN(dayNum) || monthIndex === undefined) return false;
         
-        // Year sets to 2026 based on calendar timeline
         const targetDate = new Date(2026, monthIndex, dayNum);
-        return targetDate.getDay() === 0; // 0 means Sunday in JS Engine
+        return targetDate.getDay() === 0; // 0 means Sunday
     }
 
     // Assign dynamically detected Sunday properties
     scheduleData.forEach(day => {
         day.isSunday = checkIfSundayRealCalendar(day.date);
+    });
+
+    // ⚡ PRE-CALCULATE ACCURATE WORK-DAY TRACKING INDEXES (EXCLUDING SUNDAYS FOR RESTRICTED ESSENTIALS)
+    // Isse d6 ke baad sunday ko dash aayega aur monday ko d7 se chalega!
+    let runningWorkDayCounts = []; // Array to store exact working day for each schedule row
+    let currentCount = 0;
+    scheduleData.forEach((day) => {
+        if (!day.isSunday) {
+            currentCount++;
+        }
+        runningWorkDayCounts.push(day.isSunday ? 0 : currentCount);
     });
 
     const months = ["JAN", "FEB", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUG", "SEPT", "OCT", "NOV", "DEC"];
@@ -645,8 +653,6 @@
     document.getElementById('todays-dashboard-title').innerHTML = `🎯 TODAY'S FOCUS (${todayFormatted})`;
 
     let detectedBlockId = "block-1";
-    let todaysTasksArray = [];
-    let todaysDateStringSafe = "";
     let todayIndexInSchedule = -1;
 
     scheduleData.forEach((day, index) => {
@@ -666,7 +672,7 @@
     for(let b = 1; b <= totalBlocks; b++) {
         const option = document.createElement('option');
         option.value = `block-${b}`;
-        option.textContent = `Block Group ${b} (Day ${(b-1)*8 + 1} to ${Math.min(b*8, scheduleData.length)})`;
+        option.textContent = `Block Group ${b} (Day ${(b-1)*8 + 1} to {Math.min(b*8, scheduleData.length)})`;
         selectMenu.appendChild(option);
     }
 
@@ -699,299 +705,290 @@
             <div class="page-daily-work">
                 <h4>☑ DAILY WORK (Continuous Tracking Columns)</h4>
                 <div class="ticker-table">
-        `;
+            `;
 
         dailyEssentials.forEach((essential, essentialIdx) => {
+            const isRestricted = (essential === "KHELGHAR QUIZ" || essential === "DRR");
+            
             dailyWorkHtml += `
                 <div class="ticker-row">
                     <div class="task-label">⚡ ${essential}</div>
                     <div class="checkbox-group">
-            `;
+                `;
             for (let t = 0; t < 8; t++) {
-                const absoluteDay = startDayCount + t;
-                if(absoluteDay <= scheduleData.length) {
-                    const dayData = scheduleData[absoluteDay - 1];
-                    const isSunday = dayData && dayData.isSunday === true;
-                    const isKhelgharOrDrr = (essential === "KHELGHAR QUIZ" || essential === "DRR");
+                const absoluteIndex = i + t;
+                if(absoluteIndex < scheduleData.length) {
+                    const dayData = scheduleData[absoluteIndex];
+                    const globalDayNumber = absoluteIndex + 1;
                     
-                    dailyWorkHtml += `<div class="ticker-cell"><span>D${absoluteDay}</span>`;
-                    
-                    if (isSunday && isKhelgharOrDrr) {
-                        dailyWorkHtml += `<span class="no-task-cross">—</span>`;
-                    } else {
-                        const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${absoluteDay}`;
-                        const isChecked = localStorage.getItem(storageKey) === 'true';
+                    if (dayData.isSunday && isRestricted) {
+                        // Sunday bypass layout render matrix
                         dailyWorkHtml += `
-                            <input type="checkbox" class="sync-checkbox daily-work-cb" data-block="block-${groupIndex}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
-                        `;
+                            <div class="ticker-cell">
+                                <span class="no-task-cross">—</span>
+                                <span>D${globalDayNumber}</span>
+                            </div>`;
+                    } else {
+                        // Calculate non-sunday shifted day numbering dynamically
+                        // Isse Sunday ko bypass karke skip ho jayega layout counting math sequence!
+                        const calculatedDayNum = isRestricted ? runningWorkDayCounts[absoluteIndex] : globalDayNumber;
+                        const key = `daily_g${groupIndex}_e${essentialIdx}_d${globalDayNumber}`;
+                        
+                        dailyWorkHtml += `
+                            <div class="ticker-cell">
+                                <input type="checkbox" id="${key}" data-key="${key}" onchange="handleCheckboxChange(this)">
+                                <span>D${calculatedDayNum}</span>
+                            </div>`;
                     }
-                    dailyWorkHtml += `</div>`;
                 }
             }
             dailyWorkHtml += `</div></div>`;
         });
+
         dailyWorkHtml += `</div></div>`;
 
-        let gridHtml = `<div class="tasks-grid">`;
-        currentGroup.forEach((day, dayIndex) => {
-            const absoluteDayNumber = startDayCount + dayIndex;
-            const safeDateStr = day.date.replace(/\s+/g, '_');
-            const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
-            
-            if (isToday) {
-                detectedBlockId = `block-${groupIndex}`;
-                todaysTasksArray = day.tasks;
-                todaysDateStringSafe = safeDateStr;
-            }
+        let tasksGridHtml = `<div class="tasks-grid">`;
+        currentGroup.forEach((day, index) => {
+            const globalDayCount = startDayCount + index;
+            const dayClass = day.isSunday ? "day-box sunday" : "day-box";
+            const todayHighlightClass = (todayIndexInSchedule === (startDayCount - 1 + index)) ? " today-highlight" : "";
+            const sundayBadge = day.isSunday ? `<span class="sunday-tag">SUNDAY</span>` : "";
+            const todayBadge = (todayIndexInSchedule === (startDayCount - 1 + index)) ? `<span class="today-badge">TODAY</span>` : "";
 
-            const isSundayClass = day.isSunday ? 'sunday' : '';
-            const isTodayClass = isToday ? 'today-highlight' : '';
-            const sundayTagHtml = day.isSunday ? '<span class="sunday-tag">SUNDAY</span>' : '';
-            const todayBadgeHtml = isToday ? '<span class="today-badge">TODAY</span>' : '';
-
-            gridHtml += `
-                <div class="day-box ${isSundayClass} ${isTodayClass}">
-                    <h5>[D${absoluteDayNumber}] ${day.date} ${sundayTagHtml} ${todayBadgeHtml}</h5>
+            tasksGridHtml += `
+                <div class="${dayClass}${todayHighlightClass}">
+                    <h5>📘 D${globalDayCount} (${day.date}) ${sundayBadge}${todayBadge}</h5>
                     <ul class="task-list">
             `;
 
-            day.tasks.forEach((task, taskIdx) => {
-                const storageKey = `task_${safeDateStr}_${taskIdx}`;
-                const isChecked = localStorage.getItem(storageKey) === 'true';
-                gridHtml += `
-                    <li class="task-item ${isChecked ? 'completed' : ''}" id="main-item-${safeDateStr}-${taskIdx}">
-                        <input type="checkbox" class="sync-checkbox date-task-cb" data-block="block-${groupIndex}" data-main-id="${safeDateStr}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+            day.tasks.forEach((task, tIdx) => {
+                const key = `daily_g${groupIndex}_task${tIdx}_d${globalDayCount}`;
+                tasksGridHtml += `
+                    <li class="task-item" id="item-${key}">
+                        <input type="checkbox" id="${key}" data-key="${key}" onchange="handleCheckboxChange(this)">
                         <span class="task-text">${task}</span>
                     </li>
                 `;
             });
-            gridHtml += `</ul></div>`;
-        });
-        gridHtml += `</div>`;
 
-        pageBlock.innerHTML = pageHeaderHtml + dailyWorkHtml + gridHtml;
+            tasksGridHtml += `</ul></div>`;
+        });
+        tasksGridHtml += `</div>`;
+
+        pageBlock.innerHTML = pageHeaderHtml + dailyWorkHtml + tasksGridHtml;
         container.appendChild(pageBlock);
     }
 
-    const dashboardContainer = document.getElementById('todays-task-container');
-    if (todaysTasksArray.length > 0) {
-        todaysTasksArray.forEach((task, taskIdx) => {
-            const storageKey = `task_${todaysDateStringSafe}_${taskIdx}`;
-            const isChecked = localStorage.getItem(storageKey) === 'true';
-            
-            dashboardContainer.innerHTML += `
-                <li class="todays-task-item ${isChecked ? 'completed' : ''}" id="dash-item-${todaysDateStringSafe}-${taskIdx}">
-                    <input type="checkbox" class="sync-checkbox date-task-cb" data-block="${detectedBlockId}" data-dash-id="${todaysDateStringSafe}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
-                    <span class="task-text">${task}</span>
-                </li>
-            `;
-        });
-    } else {
-        dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No tasks scheduled for today.</p>`;
-    }
-
-    function updateBlockProgressBar(blockId) {
-        const blockElement = document.getElementById(blockId);
-        if (!blockElement) return;
-
-        const allDateCheckboxes = blockElement.querySelectorAll('.sync-checkbox.date-task-cb');
-        let totalCount = allDateCheckboxes.length;
-        let checkedCount = 0;
-
-        allDateCheckboxes.forEach(cb => {
-            if (cb.checked) checkedCount++;
-        });
-
-        const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
-        
-        const textElement = document.getElementById(`progress-percent-${blockId}`);
-        const fillElement = document.getElementById(`progress-fill-${blockId}`);
-        
-        if (textElement) textElement.innerText = `${percentage}%`;
-        if (fillElement) fillElement.style.width = `${percentage}%`;
-    }
-
-    function calculateAllBlockProgressBars() {
-        for (let b = 1; b <= totalBlocks; b++) {
-            updateBlockProgressBar(`block-${b}`);
-        }
-    }
-
-    function autoScanAndRenderBacklogs() {
-        const backlogContainer = document.getElementById('backlog-list-container');
-        backlogContainer.innerHTML = '';
-        
-        let limitIndex = todayIndexInSchedule !== -1 ? todayIndexInSchedule : scheduleData.length;
-        let backlogFoundCount = 0;
-
-        for (let i = 0; i < limitIndex; i++) {
-            const day = scheduleData[i];
-            const safeDateStr = day.date.replace(/\s+/g, '_');
-            
-            day.tasks.forEach((task, taskIdx) => {
-                const storageKey = `task_${safeDateStr}_${taskIdx}`;
-                const isChecked = localStorage.getItem(storageKey) === 'true';
-                
-                if (!isChecked) {
-                    backlogFoundCount++;
-                    backlogContainer.innerHTML += `
-                        <li class="backlog-item">
-                            <span>📅 <strong>${day.date}:</strong> ${task}</span>
-                        </li>
-                    `;
-                }
-            });
-        }
-
-        if (backlogFoundCount === 0) {
-            backlogContainer.innerHTML = `<li class="backlog-item" style="background:#f0fdf4; border-left-color:var(--success); color:#065f46;">🎉 Outstanding! Koi purana backlog nahi hai.</li>`;
-        }
-    }
-
-    function showBlock(blockId) {
-        document.querySelectorAll('.pdf-page-block').forEach(block => { block.style.display = 'none'; });
+    function switchBlockView(blockId) {
+        document.querySelectorAll('.pdf-page-block').forEach(b => b.style.display = 'none');
         const selectedBlock = document.getElementById(blockId);
-        if(selectedBlock) { selectedBlock.style.display = 'block'; }
+        if(selectedBlock) {
+            selectedBlock.style.display = 'block';
+        }
         selectMenu.value = blockId;
         
         const currentNum = parseInt(blockId.split('-')[1]);
         prevBtn.disabled = (currentNum === 1);
         nextBtn.disabled = (currentNum === totalBlocks);
         
-        updateBlockProgressBar(blockId);
+        calculateBlockProgress(blockId);
     }
 
-    selectMenu.addEventListener('change', function() { showBlock(this.value); });
+    selectMenu.addEventListener('change', (e) => switchBlockView(e.target.value));
     prevBtn.addEventListener('click', () => {
-        const currentBlock = selectMenu.value;
-        const currentNum = parseInt(currentBlock.split('-')[1]);
-        if (currentNum > 1) { showBlock(`block-${currentNum - 1}`); }
+        const currentNum = parseInt(selectMenu.value.split('-')[1]);
+        if(currentNum > 1) switchBlockView(`block-${currentNum - 1}`);
     });
     nextBtn.addEventListener('click', () => {
-        const currentBlock = selectMenu.value;
-        const currentNum = parseInt(currentBlock.split('-')[1]);
-        if (currentNum < totalBlocks) { showBlock(`block-${currentNum + 1}`); }
+        const currentNum = parseInt(selectMenu.value.split('-')[1]);
+        if(currentNum < totalBlocks) switchBlockView(`block-${currentNum + 1}`);
     });
 
-    async function loadFromCloud() {
-        if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
-        document.getElementById('sync-status-text').innerText = "Real-time updates fetch ho rha hai...";
-        try {
-            const response = await fetch(SCRIPT_URL);
-            const cloudData = await response.json();
-            
-            Object.keys(cloudData).forEach(key => {
-                localStorage.setItem(key, cloudData[key]);
-                
-                if(key === 'workspace_sticky_notes') {
-                    stickyTextArea.value = cloudData[key];
-                    return;
-                }
-
-                const isChecked = (cloudData[key] === 'true' || cloudData[key] === true);
-                
-                document.querySelectorAll(`[data-key="${key}"]`).forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                    const item = checkbox.parentElement;
-                    if(isChecked) item.classList.add('completed'); else item.classList.remove('completed');
-                });
-                
-                const dashId = checkboxAttributeExtractor(key);
-                if (dashId) { uiMirrorSync(dashId, isChecked); }
-            });
-            document.getElementById('sync-dot').className = "status-dot active";
-            document.getElementById('sync-status-text').innerText = "🟢 Live Sync Connected!";
-            calculateAllBlockProgressBars();
-            autoScanAndRenderBacklogs(); 
-        } catch (e) {
-            document.getElementById('sync-status-text').innerText = "🟡 Connection Failed (Using local storage)";
-            console.log("Sync Error: ", e);
-            loadWorkspaceDataLocally();
-        }
+    if (todayIndexInSchedule !== -1) {
+        const targetBlockNum = Math.floor(todayIndexInSchedule / itemsPerGroup) + 1;
+        detectedBlockId = `block-${targetBlockNum}`;
     }
-
-    function checkboxAttributeExtractor(key) {
-        if (key.startsWith('task_')) return key.replace('task_', '');
-        return null;
-    }
-
-    function uiMirrorSync(id, isChecked) {
-        const itemDash = document.getElementById(`dash-item-${id}`);
-        const itemMain = document.getElementById(`main-item-${id}`);
-        if(isChecked) {
-            if(itemDash) itemDash.classList.add('completed');
-            if(itemMain) itemMain.classList.add('completed');
-        } else {
-            if(itemDash) itemDash.classList.remove('completed');
-            if(itemMain) itemMain.classList.remove('completed');
-        }
-    }
-
-    async function saveToCloud(key, value) {
-        if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: key, value: value })
-            });
-        } catch (e) { console.log("Cloud Save Error:", e); }
-    }
-
-    document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const key = this.getAttribute('data-key');
-            const isChecked = this.checked;
-            const targetBlockId = this.getAttribute('data-block');
-            
-            if(key) {
-                localStorage.setItem(key, isChecked);
-                if (APP_MODE === 'cloud') {
-                    saveToCloud(key, isChecked);
-                }
-            }
-
-            const dashId = this.getAttribute('data-dash-id');
-            if (dashId) {
-                const mainCheckbox = document.querySelector(`[data-main-id="${dashId}"]`);
-                if (mainCheckbox) mainCheckbox.checked = isChecked;
-                uiMirrorSync(dashId, isChecked);
-            }
-
-            const mainId = this.getAttribute('data-main-id');
-            if (mainId) {
-                const dashCheckbox = document.querySelector(`[data-dash-id="${mainId}"]`);
-                if (dashCheckbox) dashCheckbox.checked = isChecked;
-                uiMirrorSync(mainId, isChecked);
-            }
-            
-            if(!dashId && !mainId) {
-                const listItem = this.parentElement;
-                if (listItem.classList.contains('task-item') || listItem.classList.contains('ticker-cell')) {
-                    if (isChecked) listItem.classList.add('completed');
-                    else listItem.classList.remove('completed');
-                }
-            }
-
-            if(targetBlockId) {
-                updateBlockProgressBar(targetBlockId);
-            } else if (detectedBlockId) {
-                updateBlockProgressBar(detectedBlockId);
-            }
-
-            autoScanAndRenderBacklogs();
+    
+    // Render Left focus items panel
+    const focusContainer = document.getElementById('todays-task-container');
+    if (todayIndexInSchedule !== -1) {
+        const todayObj = scheduleData[todayIndexInSchedule];
+        const currentBlockNum = Math.floor(todayIndexInSchedule / itemsPerGroup) + 1;
+        const currentGlobalDayCount = todayIndexInSchedule + 1;
+        
+        todayObj.tasks.forEach((task, tIdx) => {
+            const key = `daily_g${currentBlockNum}_task${tIdx}_d${currentGlobalDayCount}`;
+            const li = document.createElement('li');
+            li.className = "todays-task-item";
+            li.innerHTML = `
+                <input type="checkbox" id="focus_${key}" data-mirror="${key}" onchange="handleMirrorCheckboxChange(this)">
+                <span>${task}</span>
+            `;
+            focusContainer.appendChild(li);
         });
-    });
+    } else {
+        focusContainer.innerHTML = `<li class="no-tasks-msg">🎉 Rest or custom revisions block day today! No scheduled items.</li>`;
+    }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        initModeSystem();
-        showBlock(detectedBlockId);
-        calculateAllBlockProgressBars();
-        if(APP_MODE === 'offline' || !SCRIPT_URL) {
-            loadWorkspaceDataLocally();
+    function handleCheckboxChange(element) {
+        const key = element.getAttribute('data-key');
+        const value = element.checked;
+        
+        // Mirror logic connection handles
+        const mirrorElement = document.getElementById(`focus_${key}`);
+        if(mirrorElement) mirrorElement.checked = value;
+        
+        // Style changes
+        const listItem = document.getElementById(`item-${key}`);
+        if(listItem) {
+            if(value) listItem.classList.add('completed');
+            else listItem.classList.remove('completed');
         }
-    });
+
+        localStorage.setItem(key, value ? "TRUE" : "FALSE");
+        
+        const parentBlockId = element.closest('.pdf-page-block').id;
+        calculateBlockProgress(parentBlockId);
+        autoScanAndRenderBacklogs();
+
+        if (APP_MODE === 'cloud' && SCRIPT_URL) {
+            saveToCloud(key, value ? "TRUE" : "FALSE");
+        }
+    }
+
+    function handleMirrorCheckboxChange(element) {
+        const targetKey = element.getAttribute('data-mirror');
+        const value = element.checked;
+        
+        const masterCheckbox = document.getElementById(targetKey);
+        if(masterCheckbox) {
+            masterCheckbox.checked = value;
+            handleCheckboxChange(masterCheckbox);
+        } else {
+            localStorage.setItem(targetKey, value ? "TRUE" : "FALSE");
+            autoScanAndRenderBacklogs();
+            if (APP_MODE === 'cloud' && SCRIPT_URL) {
+                saveToCloud(targetKey, value ? "TRUE" : "FALSE");
+            }
+        }
+    }
+
+    function calculateBlockProgress(blockId) {
+        const blockElement = document.getElementById(blockId);
+        if(!blockElement) return;
+        
+        const checkBoxes = blockElement.querySelectorAll('.tasks-grid input[type="checkbox"]');
+        if(checkBoxes.length === 0) return;
+        
+        let checkedCount = 0;
+        checkBoxes.forEach(cb => { if(cb.checked) checkedCount++; });
+        
+        const percentage = Math.round((checkedCount / checkBoxes.length) * 100);
+        
+        const percentText = document.getElementById(`progress-percent-${blockId}`);
+        const fillBar = document.getElementById(`progress-fill-${blockId}`);
+        
+        if(percentText) percentText.innerText = `${percentage}%`;
+        if(fillBar) fillBar.style.width = `${percentage}%`;
+    }
+
+    function autoScanAndRenderBacklogs() {
+        const backlogContainer = document.getElementById('backlog-list-container');
+        backlogContainer.innerHTML = "";
+        let backlogCount = 0;
+        
+        const limitIndex = todayIndexInSchedule !== -1 ? todayIndexInSchedule : scheduleData.length;
+        
+        for(let i = 0; i < limitIndex; i++) {
+            const dayObj = scheduleData[i];
+            const bNum = Math.floor(i / itemsPerGroup) + 1;
+            const globalDayCount = i + 1;
+            
+            dayObj.tasks.forEach((task, tIdx) => {
+                const key = `daily_g${bNum}_task${tIdx}_d${globalDayCount}`;
+                const status = localStorage.getItem(key);
+                
+                if(status !== "TRUE") {
+                    backlogCount++;
+                    const li = document.createElement('li');
+                    li.className = "backlog-item";
+                    li.innerHTML = `
+                        <div><b>${dayObj.date}:</b> ${task}</div>
+                    `;
+                    backlogContainer.appendChild(li);
+                }
+            });
+        }
+        
+        if(backlogCount === 0) {
+            backlogContainer.innerHTML = `<li style="color:var(--success); font-weight:bold; font-size:0.9rem; text-align:center; padding:10px;">🎉 Exceptional Work! Outstanding Zero Backlogs.</li>`;
+        }
+    }
+
+    // ☁️ GLOBAL ASYNC CLOUD SYNC SERVICES 
+    function saveToCloud(key, value) {
+        const payload = { action: "update", key: key, value: value };
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        }).catch(err => console.log("Cloud sync temporary delay: ", err));
+    }
+
+    function loadFromCloud() {
+        document.getElementById('sync-dot').className = "status-dot active";
+        document.getElementById('sync-status-text').innerText = "☁️ Synchronizing Data Matrix...";
+        
+        fetch(SCRIPT_URL)
+        .then(response => response.json())
+        .then(cloudData => {
+            document.getElementById('sync-status-text').innerText = "☁️ Cloud Sync Active";
+            
+            // Map received values directly into local storage layout cache context
+            for (const [key, val] of Object.entries(cloudData)) {
+                localStorage.setItem(key, val);
+            }
+            
+            // Map inputs status flags onto document components structure
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                const key = cb.getAttribute('data-key');
+                if (key && localStorage.getItem(key) === "TRUE") {
+                    cb.checked = true;
+                    const listItem = document.getElementById(`item-${key}`);
+                    if(listItem) listItem.classList.add('completed');
+                }
+                
+                const mirrorKey = cb.getAttribute('data-mirror');
+                if(mirrorKey && localStorage.getItem(mirrorKey) === "TRUE") {
+                    cb.checked = true;
+                }
+            });
+
+            stickyTextArea.value = localStorage.getItem('workspace_sticky_notes') || '';
+            
+            // Force reset view calculations
+            for(let b = 1; b <= totalBlocks; b++) {
+                calculateBlockProgress(`block-${b}`);
+            }
+            autoScanAndRenderBacklogs();
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('sync-dot').className = "status-dot offline-dot";
+            document.getElementById('sync-status-text').innerText = "⚠️ Timeout Fallback. Local Engine Active.";
+            loadWorkspaceDataLocally();
+            
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                const key = cb.getAttribute('data-key');
+                if (key && localStorage.getItem(key) === "TRUE") cb.checked = true;
+            });
+        });
+    }
+
+    // Initialize execution entry point
+    initModeSystem();
+    switchBlockView(detectedBlockId);
 </script>
 
 </body>
