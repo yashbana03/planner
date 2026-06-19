@@ -428,7 +428,6 @@
 
 <div class="main-wrapper">
     
-    <!-- 👈 LEFT SIDEBAR -->
     <div class="left-sidebar">
         <header>
             <h1>CDS PLANNER</h1>
@@ -444,7 +443,6 @@
         </div>
     </div>
 
-    <!-- 🏛️ CENTER CONTENT -->
     <div class="center-content">
         <div class="cloud-status-bar">
             <div class="status-info">
@@ -471,7 +469,6 @@
         <div id="pdf-layout-container"></div>
     </div>
 
-    <!-- 👉 RIGHT SIDEBAR -->
     <div class="right-sidebar">
         <div class="workspace-card backlog-border">
             <span class="workspace-title">⚠️ Auto-Backlog Corner</span>
@@ -829,7 +826,7 @@
         const mirrorElement = document.getElementById(`focus_${key}`);
         if(mirrorElement) mirrorElement.checked = value;
         
-        const listItem = document.getElementById(`item-${key}`);
+        const listItem = document.getElementById('item-' + key);
         if(listItem) {
             if(value) listItem.classList.add('completed');
             else listItem.classList.remove('completed');
@@ -875,11 +872,11 @@
         
         const percentage = Math.round((checkedCount / checkBoxes.length) * 100);
         
-        const percentText = document.getElementById(`progress-percent-${blockId}`);
-        const fillBar = document.getElementById(`progress-fill-${blockId}`);
+        const percentText = document.getElementById('progress-percent-' + blockId);
+        const fillBar = document.getElementById('progress-fill-' + blockId);
         
-        if(percentText) percentText.innerText = `${percentage}%`;
-        if(fillBar) fillBar.style.width = `${percentage}%`;
+        if(percentText) percentText.innerText = percentage + '%';
+        if(fillBar) fillBar.style.width = percentage + '%';
     }
 
     function autoScanAndRenderBacklogs() {
@@ -942,7 +939,7 @@
                 const key = cb.getAttribute('data-key');
                 if (key && localStorage.getItem(key) === "TRUE") {
                     cb.checked = true;
-                    const listItem = document.getElementById(`item-${key}`);
+                    const listItem = document.getElementById('item-' + key);
                     if(listItem) listItem.classList.add('completed');
                 }
                 
@@ -955,7 +952,7 @@
             stickyTextArea.value = localStorage.getItem('workspace_sticky_notes') || '';
             
             for(let b = 1; b <= totalBlocks; b++) {
-                calculateBlockProgress(`block-${b}`);
+                calculateBlockProgress('block-' + b);
             }
             autoScanAndRenderBacklogs();
         })
