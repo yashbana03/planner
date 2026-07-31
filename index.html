@@ -506,7 +506,7 @@
     }
 
     function askForNewLink() {
-        let url = prompt("Enter your Google Apps Script Web App URL:", SCRIPT_URL || "https://script.google.com/macros/s/AKfycbzFsThJMnPB8MDSETp4TU9pYToBGQYzz-WdDIqjgfP3bzHINkqVMq_EyjGMTQk2-DLHSw/exec");
+        let url = prompt("https://script.google.com/macros/s/AKfycbzFsThJMnPB8MDSETp4TU9pYToBGQYzz-WdDIqjgfP3bzHINkqVMq_EyjGMTQk2-DLHSw/exec");
         if (url) {
             localStorage.setItem('google_sheet_sync_url', url.trim());
             SCRIPT_URL = url.trim();
@@ -563,7 +563,6 @@
     ];
 
     const scheduleData = [
-        /* ================= PART 1 DATA (EXACT UNTOUCHED IDs) ================= */
         { date: "25 MAY", tasks: ["President + VP + Governor", "January smiling buddha Revision", "Tense", "Idioms & phrases", "Watch root words class"] },
         { date: "26 MAY", tasks: ["Parliament", "January smiling buddha Revision", "Tense", "S1-S6 practice"] },
         { date: "27 MAY", tasks: ["Parliament + Parliamentary committees", "Jan.smiling buddha Revision", "Tense based error practice", "S1-S6 practice", "Watch Jan CA class"] },
@@ -613,45 +612,26 @@
         { date: "10 JULY", tasks: ["earth, Atmosphere, heat Budget, layers of earth's", "may smiling buddha revision", "Articles + Determiner", "S1-S6 practice", "Idioms & Phrases Revision"] },
         { date: "11 JULY", tasks: ["Winds pressure belt + cyclones + Anticyclone", "may smiling buddha revision", "Articles + Determiner practice new pattern pos", "cloze test"] },
         { date: "12 JULY", tasks: ["inversion & temp + forms of condensation + clouds + precipitation", "english full mock test"] },
-        { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] },
-
-        /* ================= PART 2 PREPOMETER DATA (25th JULY - 13th AUG) ================= */
-        { date: "25 JULY", tasks: ["Homonyms + Tense Based Error", "India & Its Location + Himalayas", "January Smiling Buddha Target", "Climatology + Tense Revision"] },
-        { date: "26 JULY", tasks: ["Sunday - Backlog Clearing & Rest"] },
-        { date: "27 JULY", tasks: ["Parts of Speech + Vocab", "Mountain Passes + Northern Plain", "January Smiling Buddha Target", "Climatology + Tense Revision"] },
-        { date: "28 JULY", tasks: ["Correlating Sentence + Fixed Preposition", "Peninsular Plateau", "February Smiling Buddha Target", "Oceanography + Preposition"] },
-        { date: "29 JULY", tasks: ["Phrasal Verb + Vocab + PQRS", "Drainage System", "February Smiling Buddha Target", "Oceanography + Preposition"] },
-        { date: "30 JULY", tasks: ["S1-S6 + Preposition Based Fill-ups", "Soil", "March Smiling Buddha Target", "Interior of Earth + Earthquakes + Volcanoes + Voice"] },
-        { date: "31 JULY", tasks: ["Foreign Words + Active & Passive Voice Practice", "Indian Climate", "March Smiling Buddha Target", "Interior of Earth + Earthquakes + Volcanoes + Voice"] },
-        { date: "1 AUG", tasks: ["Homonyms + Previous Year Error Practice", "Crops", "April Smiling Buddha Target", "Rocks + Geomorphic Processes + Noun"] },
-        { date: "2 AUG", tasks: ["Sunday - Revision & Pending Tasks"] },
-        { date: "3 AUG", tasks: ["Idioms & Phrases + S1-S2 + Passage", "Vegetation of India", "May Smiling Buddha Target", "Landforms + Pronoun"] },
-        { date: "4 AUG", tasks: ["Parts of Speech + PQRS + Vocab", "Köppen's Climate Classification", "May Smiling Buddha Target", "Landforms + Pronoun"] },
-        { date: "5 AUG", tasks: ["Grammar Based Fill-up + Phrasal Verb", "Units & Measurements", "June Smiling Buddha Target", "Preamble + FR + DPSP + FDs + Verb + SVA"] },
-        { date: "6 AUG", tasks: ["Cloze Test + Vocab + S1-S6", "Force, Work, Energy & Power", "June Smiling Buddha Target", "Preamble + FR + DPSP + FDs + Verb + SVA"] },
-        { date: "7 AUG", tasks: ["Idioms & Phrases + Passage Practice", "Optics", "April Smiling Buddha Revision", "President, VP, PM, CM, Governor + Adverb"] },
-        { date: "8 AUG", tasks: ["Foreign Words + Error Practice", "Sound", "April Smiling Buddha Revision", "President, VP, PM, CM, Governor + Adverb"] },
-        { date: "9 AUG", tasks: ["Sunday - Full Mock & Review"] },
-        { date: "10 AUG", tasks: ["Homonyms + S1-S2 + Vocab", "Current Electricity", "May Smiling Buddha Revision", "Parliament + Adjective"] },
-        { date: "11 AUG", tasks: ["Preposition + Determiner Based Fill-up + S1-S6", "Magnetism", "May Smiling Buddha Revision", "Parliament + Adjective"] },
-        { date: "12 AUG", tasks: ["Cloze Test + Idioms & Phrases + PQRS", "Motion", "June Smiling Buddha Revision", "Supreme Court + High Court + Question Tag"] },
-        { date: "13 AUG", tasks: ["Parts of Speech + Foreign Words + Vocab", "Gravitation", "June Smiling Buddha Revision", "Constitutional & Non-Constitutional Bodies + Conjunction"] }
+        { date: "13 JULY", tasks: ["fronts & landforms", "may smiling buddha revision", "Grammar based error practice", "S1-S6 practice", "Homonyms Revision"] }
     ];
 
-    // Real calendar detection logic for Sundays
+    // 🧠 SMART REAL-TIME CALENDAR CALCULATION MODULE (2026 BASED)
     function checkIfSundayRealCalendar(dateStr) {
-        const monthsMap = { "MAY": 4, "JUNE": 5, "JULY": 6, "AUG": 7 };
+        const monthsMap = { "MAY": 4, "JUNE": 5, "JULY": 6 }; // 0-indexed months
         const parts = dateStr.trim().toUpperCase().split(" ");
         if (parts.length < 2) return false;
         
         const dayNum = parseInt(parts[0]);
         const monthIndex = monthsMap[parts[1]];
+        
         if (isNaN(dayNum) || monthIndex === undefined) return false;
         
+        // Year sets to 2026 based on calendar timeline
         const targetDate = new Date(2026, monthIndex, dayNum);
-        return targetDate.getDay() === 0;
+        return targetDate.getDay() === 0; // 0 means Sunday in JS Engine
     }
 
+    // Assign dynamically detected Sunday properties
     scheduleData.forEach(day => {
         day.isSunday = checkIfSundayRealCalendar(day.date);
     });
@@ -686,10 +666,7 @@
     for(let b = 1; b <= totalBlocks; b++) {
         const option = document.createElement('option');
         option.value = `block-${b}`;
-        const startDay = (b-1)*8 + 1;
-        const endDay = Math.min(b*8, scheduleData.length);
-        const isPart2 = startDay >= 51 ? " [PART 2 PREPOMETER]" : "";
-        option.textContent = `Block Group ${b} (Day ${startDay} to ${endDay})${isPart2}`;
+        option.textContent = `Block Group ${b} (Day ${(b-1)*8 + 1} to ${Math.min(b*8, scheduleData.length)})`;
         selectMenu.appendChild(option);
     }
 
@@ -704,7 +681,7 @@
 
         let pageHeaderHtml = `
             <div class="page-header">
-                <div class="page-title">📅 STUDY SCHEDULE PLANNER ${startDayCount >= 51 ? '(PART 2: PREPOMETER)' : ''}</div>
+                <div class="page-title">📅 STUDY SCHEDULE PLANNER</div>
                 <div class="pdf-tag">GROUP BLOCK ${groupIndex}</div>
             </div>
             <div class="block-progress-wrapper">
@@ -740,347 +717,282 @@
                     dailyWorkHtml += `<div class="ticker-cell"><span>D${absoluteDay}</span>`;
                     
                     if (isSunday && isKhelgharOrDrr) {
-                        dailyWorkHtml += `<span class="no-task-cross">❌</span>`;
+                        dailyWorkHtml += `<span class="no-task-cross">—</span>`;
                     } else {
-                        const checkId = `essential-${groupIndex}-${essentialIdx}-d${absoluteDay}`;
-                        dailyWorkHtml += `<input type="checkbox" id="${checkId}" onchange="toggleState('${checkId}')">`;
+                        const storageKey = `daily_g${groupIndex}_e${essentialIdx}_d${absoluteDay}`;
+                        const isChecked = localStorage.getItem(storageKey) === 'true';
+                        dailyWorkHtml += `
+                            <input type="checkbox" class="sync-checkbox daily-work-cb" data-block="block-${groupIndex}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        `;
                     }
                     dailyWorkHtml += `</div>`;
                 }
             }
-            dailyWorkHtml += `
-                    </div>
-                </div>
-            `;
+            dailyWorkHtml += `</div></div>`;
         });
+        dailyWorkHtml += `</div></div>`;
 
-        dailyWorkHtml += `
-                </div>
-            </div>
-        `;
-
-        let tasksGridHtml = `<div class="tasks-grid">`;
-
-        currentGroup.forEach((dayData, dayIdx) => {
-            const absoluteDayNum = startDayCount + dayIdx;
-            const isToday = (dayData.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
-            if(isToday) {
+        let gridHtml = `<div class="tasks-grid">`;
+        currentGroup.forEach((day, dayIndex) => {
+            const absoluteDayNumber = startDayCount + dayIndex;
+            const safeDateStr = day.date.replace(/\s+/g, '_');
+            const isToday = (day.date.trim().toUpperCase() === todayFormatted.trim().toUpperCase());
+            
+            if (isToday) {
                 detectedBlockId = `block-${groupIndex}`;
-                todaysTasksArray = dayData.tasks;
-                todaysDateStringSafe = dayData.date;
+                todaysTasksArray = day.tasks;
+                todaysDateStringSafe = safeDateStr;
             }
 
-            const sundayClass = dayData.isSunday ? 'sunday' : '';
-            const todayHighlightClass = isToday ? 'today-highlight' : '';
+            const isSundayClass = day.isSunday ? 'sunday' : '';
+            const isTodayClass = isToday ? 'today-highlight' : '';
+            const sundayTagHtml = day.isSunday ? '<span class="sunday-tag">SUNDAY</span>' : '';
+            const todayBadgeHtml = isToday ? '<span class="today-badge">TODAY</span>' : '';
 
-            tasksGridHtml += `
-                <div class="day-box ${sundayClass} ${todayHighlightClass}">
-                    <h5>
-                        DAY ${absoluteDayNum} (${dayData.date})
-                        ${dayData.isSunday ? '<span class="sunday-tag">SUNDAY</span>' : ''}
-                        ${isToday ? '<span class="today-badge">TODAY</span>' : ''}
-                    </h5>
+            gridHtml += `
+                <div class="day-box ${isSundayClass} ${isTodayClass}">
+                    <h5>[D${absoluteDayNumber}] ${day.date} ${sundayTagHtml} ${todayBadgeHtml}</h5>
                     <ul class="task-list">
             `;
 
-            dayData.tasks.forEach((task, taskIdx) => {
-                const taskId = `task-${absoluteDayNum}-${taskIdx}`;
-                tasksGridHtml += `
-                    <li class="task-item" id="item-${taskId}">
-                        <input type="checkbox" id="${taskId}" onchange="toggleTaskState('${taskId}', '${groupIndex}')">
-                        <label for="${taskId}" class="task-text">${task}</label>
+            day.tasks.forEach((task, taskIdx) => {
+                const storageKey = `task_${safeDateStr}_${taskIdx}`;
+                const isChecked = localStorage.getItem(storageKey) === 'true';
+                gridHtml += `
+                    <li class="task-item ${isChecked ? 'completed' : ''}" id="main-item-${safeDateStr}-${taskIdx}">
+                        <input type="checkbox" class="sync-checkbox date-task-cb" data-block="block-${groupIndex}" data-main-id="${safeDateStr}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                        <span class="task-text">${task}</span>
                     </li>
                 `;
             });
-
-            tasksGridHtml += `
-                    </ul>
-                </div>
-            `;
+            gridHtml += `</ul></div>`;
         });
+        gridHtml += `</div>`;
 
-        tasksGridHtml += `</div>`;
-
-        pageBlock.innerHTML = pageHeaderHtml + dailyWorkHtml + tasksGridHtml;
+        pageBlock.innerHTML = pageHeaderHtml + dailyWorkHtml + gridHtml;
         container.appendChild(pageBlock);
     }
 
-    function renderFocusDashboard() {
-        const focusContainer = document.getElementById('todays-task-container');
-        focusContainer.innerHTML = '';
-
-        if (todaysTasksArray.length === 0) {
-            focusContainer.innerHTML = `<li class="no-tasks-msg">🎉 No specific scheduled study tasks mapped for today! Focus on backlogs or revision.</li>`;
-            return;
-        }
-
-        todaysTasksArray.forEach((task, idx) => {
-            const mappedTaskId = `task-${todayIndexInSchedule + 1}-${idx}`;
-            const isChecked = localStorage.getItem(mappedTaskId) === 'true';
-
-            const li = document.createElement('li');
-            li.className = 'todays-task-item';
-            li.innerHTML = `
-                <input type="checkbox" id="dash-${mappedTaskId}" ${isChecked ? 'checked' : ''} onchange="syncDashboardWithMain('${mappedTaskId}')">
-                <label for="dash-${mappedTaskId}">${task}</label>
+    const dashboardContainer = document.getElementById('todays-task-container');
+    if (todaysTasksArray.length > 0) {
+        todaysTasksArray.forEach((task, taskIdx) => {
+            const storageKey = `task_${todaysDateStringSafe}_${taskIdx}`;
+            const isChecked = localStorage.getItem(storageKey) === 'true';
+            
+            dashboardContainer.innerHTML += `
+                <li class="todays-task-item ${isChecked ? 'completed' : ''}" id="dash-item-${todaysDateStringSafe}-${taskIdx}">
+                    <input type="checkbox" class="sync-checkbox date-task-cb" data-block="${detectedBlockId}" data-dash-id="${todaysDateStringSafe}-${taskIdx}" data-key="${storageKey}" ${isChecked ? 'checked' : ''}>
+                    <span class="task-text">${task}</span>
+                </li>
             `;
-            focusContainer.appendChild(li);
         });
+    } else {
+        dashboardContainer.innerHTML = `<p class="no-tasks-msg">🎉 No tasks scheduled for today.</p>`;
     }
 
-    function syncDashboardWithMain(taskId) {
-        const dashCb = document.getElementById(`dash-${taskId}`);
-        const mainCb = document.getElementById(taskId);
+    function updateBlockProgressBar(blockId) {
+        const blockElement = document.getElementById(blockId);
+        if (!blockElement) return;
+
+        const allDateCheckboxes = blockElement.querySelectorAll('.sync-checkbox.date-task-cb');
+        let totalCount = allDateCheckboxes.length;
+        let checkedCount = 0;
+
+        allDateCheckboxes.forEach(cb => {
+            if (cb.checked) checkedCount++;
+        });
+
+        const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
         
-        if (mainCb) {
-            mainCb.checked = dashCb.checked;
-            const blockNum = Math.ceil((todayIndexInSchedule + 1) / itemsPerGroup);
-            toggleTaskState(taskId, blockNum);
-        } else {
-            localStorage.setItem(taskId, dashCb.checked);
-            if(APP_MODE === 'cloud' && SCRIPT_URL) saveToCloud(taskId, dashCb.checked);
-            autoScanAndRenderBacklogs();
-        }
-    }
-
-    function toggleState(checkId) {
-        const cb = document.getElementById(checkId);
-        if(!cb) return;
-        localStorage.setItem(checkId, cb.checked);
-        if(APP_MODE === 'cloud' && SCRIPT_URL) saveToCloud(checkId, cb.checked);
-    }
-
-    function toggleTaskState(taskId, blockNum) {
-        const cb = document.getElementById(taskId);
-        const item = document.getElementById(`item-${taskId}`);
-        if(!cb) return;
-
-        if (cb.checked) {
-            if(item) item.classList.add('completed');
-        } else {
-            if(item) item.classList.remove('completed');
-        }
-
-        localStorage.setItem(taskId, cb.checked);
-        if(APP_MODE === 'cloud' && SCRIPT_URL) saveToCloud(taskId, cb.checked);
-
-        const dashCb = document.getElementById(`dash-${taskId}`);
-        if (dashCb) dashCb.checked = cb.checked;
-
-        updateBlockProgressBar(blockNum);
-        autoScanAndRenderBacklogs();
-    }
-
-    function updateBlockProgressBar(blockNum) {
-        const startDay = (blockNum - 1) * itemsPerGroup + 1;
-        const endDay = Math.min(blockNum * itemsPerGroup, scheduleData.length);
+        const textElement = document.getElementById(`progress-percent-${blockId}`);
+        const fillElement = document.getElementById(`progress-fill-${blockId}`);
         
-        let totalTaskCount = 0;
-        let completedTaskCount = 0;
-
-        for (let dNum = startDay; dNum <= endDay; dNum++) {
-            const dayInfo = scheduleData[dNum - 1];
-            if (dayInfo && dayInfo.tasks) {
-                dayInfo.tasks.forEach((_, tIdx) => {
-                    totalTaskCount++;
-                    const tId = `task-${dNum}-${tIdx}`;
-                    if (localStorage.getItem(tId) === 'true') {
-                        completedTaskCount++;
-                    }
-                });
-            }
-        }
-
-        const percentage = totalTaskCount > 0 ? Math.round((completedTaskCount / totalTaskCount) * 100) : 0;
-        
-        const fillEl = document.getElementById(`progress-fill-block-${blockNum}`);
-        const percentEl = document.getElementById(`progress-percent-block-${blockNum}`);
-
-        if (fillEl && percentEl) {
-            fillEl.style.width = `${percentage}%`;
-            percentEl.innerText = `${percentage}%`;
-        }
+        if (textElement) textElement.innerText = `${percentage}%`;
+        if (fillElement) fillElement.style.width = `${percentage}%`;
     }
 
-    function updateAllProgressBars() {
+    function calculateAllBlockProgressBars() {
         for (let b = 1; b <= totalBlocks; b++) {
-            updateBlockProgressBar(b);
+            updateBlockProgressBar(`block-${b}`);
         }
     }
 
     function autoScanAndRenderBacklogs() {
         const backlogContainer = document.getElementById('backlog-list-container');
         backlogContainer.innerHTML = '';
+        
+        let limitIndex = todayIndexInSchedule !== -1 ? todayIndexInSchedule : scheduleData.length;
+        let backlogFoundCount = 0;
 
-        if (todayIndexInSchedule <= 0) {
-            backlogContainer.innerHTML = `<li style="font-size:0.85rem; color:#6b7280; font-style:italic;">No backlogs detected yet! You are right on track.</li>`;
-            return;
-        }
-
-        let backlogCount = 0;
-
-        for (let dIdx = 0; dIdx < todayIndexInSchedule; dIdx++) {
-            const dayData = scheduleData[dIdx];
-            const absDay = dIdx + 1;
-
-            dayData.tasks.forEach((task, tIdx) => {
-                const taskId = `task-${absDay}-${tIdx}`;
-                const isDone = localStorage.getItem(taskId) === 'true';
-
-                if (!isDone) {
-                    backlogCount++;
-                    const li = document.createElement('li');
-                    li.className = 'backlog-item';
-                    li.innerHTML = `
-                        <span><strong>D${absDay} (${dayData.date}):</strong> ${task}</span>
-                        <input type="checkbox" id="backlog-${taskId}" onchange="clearBacklogDirectly('${taskId}')">
+        for (let i = 0; i < limitIndex; i++) {
+            const day = scheduleData[i];
+            const safeDateStr = day.date.replace(/\s+/g, '_');
+            
+            day.tasks.forEach((task, taskIdx) => {
+                const storageKey = `task_${safeDateStr}_${taskIdx}`;
+                const isChecked = localStorage.getItem(storageKey) === 'true';
+                
+                if (!isChecked) {
+                    backlogFoundCount++;
+                    backlogContainer.innerHTML += `
+                        <li class="backlog-item">
+                            <span>📅 <strong>${day.date}:</strong> ${task}</span>
+                        </li>
                     `;
-                    backlogContainer.appendChild(li);
                 }
             });
         }
 
-        if (backlogCount === 0) {
-            backlogContainer.innerHTML = `<li style="font-size:0.85rem; color:#10b981; font-weight:bold;">🎉 Awesome! Zero backlogs pending from past days!</li>`;
+        if (backlogFoundCount === 0) {
+            backlogContainer.innerHTML = `<li class="backlog-item" style="background:#f0fdf4; border-left-color:var(--success); color:#065f46;">🎉 Outstanding! Koi purana backlog nahi hai.</li>`;
         }
-    }
-
-    function clearBacklogDirectly(taskId) {
-        const cb = document.getElementById(taskId);
-        if (cb) {
-            cb.checked = true;
-            const blockNum = Math.ceil(parseInt(taskId.split('-')[1]) / itemsPerGroup);
-            toggleTaskState(taskId, blockNum);
-        } else {
-            localStorage.setItem(taskId, 'true');
-            if(APP_MODE === 'cloud' && SCRIPT_URL) saveToCloud(taskId, 'true');
-            autoScanAndRenderBacklogs();
-        }
-    }
-
-    function loadSavedStatesLocalUI() {
-        scheduleData.forEach((dayData, dayIdx) => {
-            const absoluteDayNum = dayIdx + 1;
-
-            dayData.tasks.forEach((_, taskIdx) => {
-                const taskId = `task-${absoluteDayNum}-${taskIdx}`;
-                const val = localStorage.getItem(taskId);
-                const cb = document.getElementById(taskId);
-                const item = document.getElementById(`item-${taskId}`);
-
-                if (cb && val === 'true') {
-                    cb.checked = true;
-                    if(item) item.classList.add('completed');
-                }
-            });
-        });
-
-        for (let groupIndex = 1; groupIndex <= totalBlocks; groupIndex++) {
-            const startDayCount = (groupIndex - 1) * itemsPerGroup + 1;
-            dailyEssentials.forEach((_, essentialIdx) => {
-                for (let t = 0; t < 8; t++) {
-                    const absoluteDay = startDayCount + t;
-                    const checkId = `essential-${groupIndex}-${essentialIdx}-d${absoluteDay}`;
-                    const val = localStorage.getItem(checkId);
-                    const cb = document.getElementById(checkId);
-                    if (cb && val === 'true') {
-                        cb.checked = true;
-                    }
-                }
-            });
-        }
-
-        updateAllProgressBars();
-        renderFocusDashboard();
-        autoScanAndRenderBacklogs();
     }
 
     function showBlock(blockId) {
-        const blocks = document.querySelectorAll('.pdf-page-block');
-        blocks.forEach(block => {
-            block.style.display = (block.id === blockId) ? 'block' : 'none';
-        });
+        document.querySelectorAll('.pdf-page-block').forEach(block => { block.style.display = 'none'; });
+        const selectedBlock = document.getElementById(blockId);
+        if(selectedBlock) { selectedBlock.style.display = 'block'; }
         selectMenu.value = blockId;
-        updateNavButtons();
-    }
-
-    function updateNavButtons() {
-        const currentIndex = selectMenu.selectedIndex;
-        prevBtn.disabled = (currentIndex === 0);
-        nextBtn.disabled = (currentIndex === selectMenu.options.length - 1);
+        
+        const currentNum = parseInt(blockId.split('-')[1]);
+        prevBtn.disabled = (currentNum === 1);
+        nextBtn.disabled = (currentNum === totalBlocks);
+        
+        updateBlockProgressBar(blockId);
     }
 
     selectMenu.addEventListener('change', function() { showBlock(this.value); });
-    prevBtn.addEventListener('click', function() {
-        if (selectMenu.selectedIndex > 0) {
-            selectMenu.selectedIndex--;
-            showBlock(selectMenu.value);
-        }
+    prevBtn.addEventListener('click', () => {
+        const currentBlock = selectMenu.value;
+        const currentNum = parseInt(currentBlock.split('-')[1]);
+        if (currentNum > 1) { showBlock(`block-${currentNum - 1}`); }
     });
-    nextBtn.addEventListener('click', function() {
-        if (selectMenu.selectedIndex < selectMenu.options.length - 1) {
-            selectMenu.selectedIndex++;
-            showBlock(selectMenu.value);
-        }
+    nextBtn.addEventListener('click', () => {
+        const currentBlock = selectMenu.value;
+        const currentNum = parseInt(currentBlock.split('-')[1]);
+        if (currentNum < totalBlocks) { showBlock(`block-${currentNum + 1}`); }
     });
 
-    function saveToCloud(key, value) {
-        if (!SCRIPT_URL || APP_MODE === 'offline') return;
-        const syncDot = document.getElementById('sync-dot');
-        const syncText = document.getElementById('sync-status-text');
-        
-        syncDot.className = "status-dot";
-        syncText.innerText = "Syncing...";
-
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: key, value: String(value) })
-        }).then(() => {
-            syncDot.className = "status-dot active";
-            syncText.innerText = "☁️ Cloud Synced";
-        }).catch(err => {
-            console.error("Cloud Sync Error:", err);
-            syncDot.className = "status-dot offline-dot";
-            syncText.innerText = "⚠️ Cloud Sync Failed";
-        });
-    }
-
-    function loadFromCloud() {
-        if (!SCRIPT_URL || APP_MODE === 'offline') return;
-        const syncDot = document.getElementById('sync-dot');
-        const syncText = document.getElementById('sync-status-text');
-
-        syncDot.className = "status-dot";
-        syncText.innerText = "Fetching Cloud Data...";
-
-        fetch(SCRIPT_URL)
-            .then(res => res.json())
-            .then(data => {
-                if (data) {
-                    Object.keys(data).forEach(key => {
-                        localStorage.setItem(key, data[key]);
-                    });
-                    stickyTextArea.value = localStorage.getItem('workspace_sticky_notes') || '';
-                    loadSavedStatesLocalUI();
-                    syncDot.className = "status-dot active";
-                    syncText.innerText = "☁️ Cloud Synced & Active";
+    async function loadFromCloud() {
+        if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
+        document.getElementById('sync-status-text').innerText = "Real-time updates fetch ho rha hai...";
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const cloudData = await response.json();
+            
+            Object.keys(cloudData).forEach(key => {
+                localStorage.setItem(key, cloudData[key]);
+                
+                if(key === 'workspace_sticky_notes') {
+                    stickyTextArea.value = cloudData[key];
+                    return;
                 }
-            })
-            .catch(err => {
-                console.error("Cloud Fetch Error:", err);
-                syncDot.className = "status-dot offline-dot";
-                syncText.innerText = "⚠️ Offline Mode (Fetch Failed)";
-                loadWorkspaceDataLocally();
-                loadSavedStatesLocalUI();
+
+                const isChecked = (cloudData[key] === 'true' || cloudData[key] === true);
+                
+                document.querySelectorAll(`[data-key="${key}"]`).forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                    const item = checkbox.parentElement;
+                    if(isChecked) item.classList.add('completed'); else item.classList.remove('completed');
+                });
+                
+                const dashId = checkboxAttributeExtractor(key);
+                if (dashId) { uiMirrorSync(dashId, isChecked); }
             });
+            document.getElementById('sync-dot').className = "status-dot active";
+            document.getElementById('sync-status-text').innerText = "🟢 Live Sync Connected!";
+            calculateAllBlockProgressBars();
+            autoScanAndRenderBacklogs(); 
+        } catch (e) {
+            document.getElementById('sync-status-text').innerText = "🟡 Connection Failed (Using local storage)";
+            console.log("Sync Error: ", e);
+            loadWorkspaceDataLocally();
+        }
     }
 
-    // Initialize layout and state
-    initModeSystem();
-    loadSavedStatesLocalUI();
-    showBlock(detectedBlockId);
+    function checkboxAttributeExtractor(key) {
+        if (key.startsWith('task_')) return key.replace('task_', '');
+        return null;
+    }
+
+    function uiMirrorSync(id, isChecked) {
+        const itemDash = document.getElementById(`dash-item-${id}`);
+        const itemMain = document.getElementById(`main-item-${id}`);
+        if(isChecked) {
+            if(itemDash) itemDash.classList.add('completed');
+            if(itemMain) itemMain.classList.add('completed');
+        } else {
+            if(itemDash) itemDash.classList.remove('completed');
+            if(itemMain) itemMain.classList.remove('completed');
+        }
+    }
+
+    async function saveToCloud(key, value) {
+        if (APP_MODE !== 'cloud' || !SCRIPT_URL) return;
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: key, value: value })
+            });
+        } catch (e) { console.log("Cloud Save Error:", e); }
+    }
+
+    document.querySelectorAll('.sync-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const key = this.getAttribute('data-key');
+            const isChecked = this.checked;
+            const targetBlockId = this.getAttribute('data-block');
+            
+            if(key) {
+                localStorage.setItem(key, isChecked);
+                if (APP_MODE === 'cloud') {
+                    saveToCloud(key, isChecked);
+                }
+            }
+
+            const dashId = this.getAttribute('data-dash-id');
+            if (dashId) {
+                const mainCheckbox = document.querySelector(`[data-main-id="${dashId}"]`);
+                if (mainCheckbox) mainCheckbox.checked = isChecked;
+                uiMirrorSync(dashId, isChecked);
+            }
+
+            const mainId = this.getAttribute('data-main-id');
+            if (mainId) {
+                const dashCheckbox = document.querySelector(`[data-dash-id="${mainId}"]`);
+                if (dashCheckbox) dashCheckbox.checked = isChecked;
+                uiMirrorSync(mainId, isChecked);
+            }
+            
+            if(!dashId && !mainId) {
+                const listItem = this.parentElement;
+                if (listItem.classList.contains('task-item') || listItem.classList.contains('ticker-cell')) {
+                    if (isChecked) listItem.classList.add('completed');
+                    else listItem.classList.remove('completed');
+                }
+            }
+
+            if(targetBlockId) {
+                updateBlockProgressBar(targetBlockId);
+            } else if (detectedBlockId) {
+                updateBlockProgressBar(detectedBlockId);
+            }
+
+            autoScanAndRenderBacklogs();
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initModeSystem();
+        showBlock(detectedBlockId);
+        calculateAllBlockProgressBars();
+        if(APP_MODE === 'offline' || !SCRIPT_URL) {
+            loadWorkspaceDataLocally();
+        }
+    });
 </script>
+
 </body>
 </html>
